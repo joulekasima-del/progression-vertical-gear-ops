@@ -1,0 +1,291 @@
+/*
+ * ============================================================
+ * styles.css
+ * Progression Vertical Operations System
+ * ============================================================
+ *
+ * Shared styles for all frontend apps.
+ * Mobile-first design for staff use on phones and tablets.
+ *
+ * Color scheme:
+ *   --primary:    #2B5D3A  (deep green — nature / climbing)
+ *   --primary-lt: #3A7A4F  (lighter green for hover)
+ *   --accent:     #E8A838  (warm amber — chalk / rock)
+ *   --danger:     #C0392B  (red — retired / warnings)
+ *   --warning:    #E67E22  (orange — monitor / attention)
+ *   --success:    #27AE60  (green — good / completed)
+ *   --bg:         #F5F0EB  (warm off-white — rope / limestone)
+ *   --surface:    #FFFFFF  (card background)
+ *   --text:       #2C2C2C  (near black)
+ *   --text-light: #6B6B6B  (secondary text)
+ *   --border:     #D5CCBF  (warm gray border)
+ * ============================================================
+ */
+
+/* --- CSS Variables --- */
+:root {
+  --primary:    #2B5D3A;
+  --primary-lt: #3A7A4F;
+  --accent:     #E8A838;
+  --danger:     #C0392B;
+  --warning:    #E67E22;
+  --success:    #27AE60;
+  --bg:         #F5F0EB;
+  --surface:    #FFFFFF;
+  --text:       #2C2C2C;
+  --text-light: #6B6B6B;
+  --border:     #D5CCBF;
+  --radius:     8px;
+  --shadow:     0 2px 8px rgba(0,0,0,0.08);
+}
+
+
+/* --- Reset and base --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+
+/* --- Typography --- */
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+
+
+/* --- Page header with home link --- */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.back-link:hover {
+  background: var(--bg);
+}
+
+
+/* --- Cards --- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+
+
+/* --- Buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  text-decoration: none;
+  color: #fff;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--primary);
+}
+
+.btn-primary:hover {
+  background: var(--primary-lt);
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: var(--danger);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+
+/* --- Category selector buttons --- */
+.category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 10px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: center;
+}
+
+.category-btn:hover {
+  border-color: var(--primary);
+  background: #f0f7f2;
+}
+
+.category-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+
+/* --- Gear list table --- */
+.gear-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.gear-table th {
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border);
+}
+
+.gear-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.gear-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gear-table .gear-id {
+  font-family: "SF Mono", "Consolas", monospace;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+
+/* --- Status messages --- */
+.status-message {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.status-message.loading::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-message.error {
+  color: var(--danger);
+}
+
+.status-message.empty {
+  color: var(--warning);
+}
+
+
+/* --- Item count badge --- */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-count {
+  background: #E8F5E9;
+  color: var(--primary);
+}
+
+
+/* --- Utility --- */
+.mt-8  { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.hidden { display: none !important; }
