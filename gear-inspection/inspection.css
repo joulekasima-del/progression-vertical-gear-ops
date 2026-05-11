@@ -367,3 +367,93 @@
   font-size: 0.9rem;
   line-height: 1.6;
 }
+
+
+/* --- Retired gear section --- */
+.retired-section {
+  margin-top: 10px;
+  padding: 12px;
+  background: #fdf2f0;
+  border: 2px solid var(--danger);
+  border-radius: 6px;
+}
+
+.retired-header {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--danger);
+  margin-bottom: 10px;
+}
+
+.retired-field {
+  margin-bottom: 10px;
+}
+
+.retired-field:last-child {
+  margin-bottom: 0;
+}
+
+.retired-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.retired-field .required {
+  color: var(--danger);
+}
+
+.retired-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.retired-input:focus {
+  outline: none;
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12);
+}
+
+/* Checkbox row */
+.retired-checkbox-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retired-checkbox-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--danger);
+  cursor: pointer;
+}
+
+.moved-warning {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* Card state: retired details incomplete */
+.inspection-card.card-retired {
+  border-color: var(--warning);
+  border-left-width: 4px;
+}
+
+/* Card state: retired and valid */
+.inspection-card.card-retired-valid {
+  border-left-color: var(--danger);
+  border-left-width: 4px;
+}
