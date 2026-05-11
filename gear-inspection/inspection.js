@@ -8,6 +8,7 @@
  *   1. Load gear by category (from API)
  *   2. Quantity validation
  *   3. Submit inspection (saves to INSPECTION_LOG)
+ *   4. Retired gear logging (saves to RETIRED_GEAR_LOG)
  *
  * Depends on:
  *   - ../shared/config.js  (API URL)
@@ -17,7 +18,7 @@
 
 
 // ============================================================
-// REFERENCES — grab HTML elements we need to work with
+// REFERENCES
 // ============================================================
 
 var categoryButtons    = document.querySelectorAll(".category-btn");
@@ -37,11 +38,11 @@ var newInspectionBtn   = document.getElementById("new-inspection-btn");
 
 
 // ============================================================
-// STATE — track what the user has selected
+// STATE
 // ============================================================
 
-var currentCategory = null;  // The currently selected category
-var currentGearList = [];    // The gear items returned from the API
+var currentCategory = null;
+var currentGearList = [];
 
 
 // ============================================================
@@ -53,20 +54,13 @@ dateInput.value = new Date().toISOString().split("T")[0];
 
 // ============================================================
 // CATEGORY BUTTON CLICKS
-// When staff tap a category, highlight it and load gear.
 // ============================================================
 
 categoryButtons.forEach(function(btn) {
   btn.addEventListener("click", function() {
-
-    // Get the category from the button's data attribute
     var category = btn.getAttribute("data-category");
-
-    // Update visual state: remove "active" from all, add to clicked
     categoryButtons.forEach(function(b) { b.classList.remove("active"); });
     btn.classList.add("active");
-
-    // Save current category and load gear
     currentCategory = category;
     loadGear(category);
   });
@@ -87,21 +81,14 @@ submitBtn.addEventListener("click", function() {
 // ============================================================
 
 newInspectionBtn.addEventListener("click", function() {
-  // Reset state
   currentCategory = null;
   currentGearList = [];
-
-  // Reset UI
   categoryButtons.forEach(function(b) { b.classList.remove("active"); });
   inspectorInput.value = "";
   dateInput.value = new Date().toISOString().split("T")[0];
-
-  // Show category selection, hide other sections
   stepCategory.classList.remove("hidden");
   stepGearList.classList.add("hidden");
   stepSuccess.classList.add("hidden");
-
-  // Scroll to top
   window.scrollTo(0, 0);
 });
 
@@ -111,48 +98,30 @@ newInspectionBtn.addEventListener("click", function() {
 // ============================================================
 
 async function loadGear(category) {
-
-  // Show the gear list section, hide submit until form renders
   stepGearList.classList.remove("hidden");
   submitSection.classList.add("hidden");
-
-  // Update the category name display
   selectedCatName.textContent = category;
   gearCount.textContent = "";
-
-  // Show loading spinner
   gearListContainer.innerHTML = '<div class="status-message loading">Loading gear…</div>';
 
-  // Call the API
   var result = await callAPI("loadGearByCategory", { category: category });
 
-  // Handle errors
   if (!result.success) {
     gearListContainer.innerHTML =
       '<div class="status-message error">Error: ' + (result.error || "Unknown error") + '</div>';
     return;
   }
 
-  // Handle empty results
   if (!result.data || result.data.length === 0) {
     gearListContainer.innerHTML =
       '<div class="status-message empty">No active gear found for ' + category + '.</div>';
     return;
   }
 
-  // Save the gear list for later use
   currentGearList = result.data;
-
-  // Update the count badge
   gearCount.textContent = result.data.length + " items";
-
-  // Render the inspection form (cards with inputs)
   renderInspectionForm(result.data);
-
-  // Show the submit section
   submitSection.classList.remove("hidden");
-
-  // Run initial validation (all blank = disabled submit)
   validateAllRows();
 }
 
@@ -162,7 +131,6 @@ async function loadGear(category) {
 // ============================================================
 
 function renderInspectionForm(gearItems) {
-
   var html = "";
 
   for (var i = 0; i < gearItems.length; i++) {
@@ -170,19 +138,19 @@ function renderInspectionForm(gearItems) {
 
     html += '<div class="inspection-card" id="card-' + i + '">';
 
-    // --- Card header: gear name + ID ---
+    // Card header
     html += '  <div class="card-header">';
     html += '    <span class="card-gear-name">' + escapeHtml(item.gear_name) + '</span>';
     html += '    <span class="gear-id">' + escapeHtml(item.gear_type_id) + '</span>';
     html += '  </div>';
 
-    // --- Expected qty (read-only) ---
+    // Expected qty
     html += '  <div class="qty-row qty-row-expected">';
     html += '    <label>Expected</label>';
     html += '    <span class="expected-value">' + item.expected_qty + '</span>';
     html += '  </div>';
 
-    // --- Actual qty input ---
+    // Actual qty
     html += '  <div class="qty-row">';
     html += '    <label for="actual-' + i + '">Actual</label>';
     html += '    <input type="number" id="actual-' + i + '" class="qty-input"';
@@ -190,12 +158,11 @@ function renderInspectionForm(gearItems) {
     html += '      min="0" placeholder="0" inputmode="numeric" />';
     html += '  </div>';
 
-    // --- Quality breakdown: Good / Monitor / Retired ---
+    // Quality breakdown
     html += '  <div class="quality-group">';
     html += '    <div class="quality-label">Quality breakdown</div>';
     html += '    <div class="quality-inputs">';
 
-    // Good
     html += '      <div class="quality-field">';
     html += '        <label for="good-' + i + '">Good</label>';
     html += '        <input type="number" id="good-' + i + '" class="qty-input qty-good"';
@@ -203,7 +170,6 @@ function renderInspectionForm(gearItems) {
     html += '          min="0" placeholder="0" inputmode="numeric" />';
     html += '      </div>';
 
-    // Monitor
     html += '      <div class="quality-field">';
     html += '        <label for="monitor-' + i + '">Monitor</label>';
     html += '        <input type="number" id="monitor-' + i + '" class="qty-input qty-monitor"';
@@ -211,7 +177,6 @@ function renderInspectionForm(gearItems) {
     html += '          min="0" placeholder="0" inputmode="numeric" />';
     html += '      </div>';
 
-    // Retired
     html += '      <div class="quality-field">';
     html += '        <label for="retired-' + i + '">Retired</label>';
     html += '        <input type="number" id="retired-' + i + '" class="qty-input qty-retired"';
@@ -219,56 +184,145 @@ function renderInspectionForm(gearItems) {
     html += '          min="0" placeholder="0" inputmode="numeric" />';
     html += '      </div>';
 
-    html += '    </div>'; // end quality-inputs
-    html += '  </div>';   // end quality-group
+    html += '    </div>';
+    html += '  </div>';
 
-    // --- Missing qty (auto-calculated) ---
+    // Missing qty
     html += '  <div class="qty-row qty-row-missing">';
     html += '    <label>Missing</label>';
     html += '    <span id="missing-' + i + '" class="missing-value">—</span>';
     html += '  </div>';
 
-    // --- Notes (optional, per item) ---
+    // Notes
     html += '  <div class="notes-row">';
     html += '    <input type="text" id="notes-' + i + '" class="notes-input"';
     html += '      placeholder="Notes (optional)" autocomplete="off" />';
     html += '  </div>';
 
-    // --- Validation message (shown when totals don't match) ---
+    // --- Retired gear section (hidden by default, shown when retired > 0) ---
+    html += '  <div id="retired-section-' + i + '" class="retired-section hidden">';
+    html += '    <div class="retired-header">⚠ Retired Gear Details</div>';
+
+    // Damage detail (required)
+    html += '    <div class="retired-field">';
+    html += '      <label for="damage-' + i + '">Damage Detail <span class="required">*</span></label>';
+    html += '      <input type="text" id="damage-' + i + '" class="retired-input"';
+    html += '        placeholder="Describe the damage or reason for retiring" autocomplete="off" />';
+    html += '    </div>';
+
+    // Moved to retired box (checkbox)
+    html += '    <div class="retired-field retired-checkbox-row">';
+    html += '      <label>';
+    html += '        <input type="checkbox" id="moved-' + i + '" />';
+    html += '        Moved to retired box';
+    html += '      </label>';
+    html += '      <span id="moved-warning-' + i + '" class="moved-warning hidden">Must be checked</span>';
+    html += '    </div>';
+
+    // Action needed (optional)
+    html += '    <div class="retired-field">';
+    html += '      <label for="action-' + i + '">Action Needed</label>';
+    html += '      <input type="text" id="action-' + i + '" class="retired-input"';
+    html += '        placeholder="e.g., Order replacement, Manager review (optional)" autocomplete="off" />';
+    html += '    </div>';
+
+    html += '  </div>'; // end retired-section
+
+    // Validation warning
     html += '  <div id="warning-' + i + '" class="card-warning hidden"></div>';
 
     html += '</div>'; // end inspection-card
   }
 
-  // Insert into the page
   gearListContainer.innerHTML = html;
 
-  // Attach input event listeners to all quantity inputs
+  // Attach listeners to quantity inputs
   var allInputs = gearListContainer.querySelectorAll(".qty-input");
   allInputs.forEach(function(input) {
     input.addEventListener("input", function() {
       var rowIndex = parseInt(input.getAttribute("data-row"));
+      toggleRetiredSection(rowIndex);
       validateRow(rowIndex);
       validateAllRows();
     });
   });
+
+  // Attach listeners to retired fields (damage, moved checkbox)
+  for (var j = 0; j < gearItems.length; j++) {
+    (function(idx) {
+      var damageInput = document.getElementById("damage-" + idx);
+      var movedCheckbox = document.getElementById("moved-" + idx);
+
+      damageInput.addEventListener("input", function() {
+        validateRow(idx);
+        validateAllRows();
+      });
+
+      movedCheckbox.addEventListener("change", function() {
+        // Update the warning visibility
+        var movedWarning = document.getElementById("moved-warning-" + idx);
+        if (movedCheckbox.checked) {
+          movedWarning.classList.add("hidden");
+        } else {
+          movedWarning.classList.remove("hidden");
+        }
+        validateRow(idx);
+        validateAllRows();
+      });
+    })(j);
+  }
 }
 
 
 // ============================================================
-// getInputValue — reads an input value, returns 0 for blank/negative
+// toggleRetiredSection — show/hide retired fields based on qty
+// ============================================================
+
+function toggleRetiredSection(rowIndex) {
+  var retired = getInputValue("retired-" + rowIndex);
+  var section = document.getElementById("retired-section-" + rowIndex);
+
+  if (retired > 0) {
+    section.classList.remove("hidden");
+  } else {
+    section.classList.add("hidden");
+  }
+}
+
+
+// ============================================================
+// getInputValue — reads input value, returns 0 for blank/negative
 // ============================================================
 
 function getInputValue(id) {
   var el = document.getElementById(id);
   if (!el) return 0;
-
   var val = parseInt(el.value, 10);
-
-  // Treat blank, NaN, or negative as 0
   if (isNaN(val) || val < 0) return 0;
-
   return val;
+}
+
+
+// ============================================================
+// isRetiredValid — checks if retired fields are valid for a row
+// Returns true if retired = 0, or if retired > 0 and fields OK
+// ============================================================
+
+function isRetiredValid(rowIndex) {
+  var retired = getInputValue("retired-" + rowIndex);
+
+  // No retired items = no validation needed
+  if (retired === 0) return true;
+
+  // Check damage detail is filled
+  var damageEl = document.getElementById("damage-" + rowIndex);
+  if (!damageEl || damageEl.value.trim() === "") return false;
+
+  // Check moved to retired box is checked
+  var movedEl = document.getElementById("moved-" + rowIndex);
+  if (!movedEl || !movedEl.checked) return false;
+
+  return true;
 }
 
 
@@ -280,23 +334,20 @@ function validateRow(rowIndex) {
   var item = currentGearList[rowIndex];
   var expected = item.expected_qty;
 
-  // Read input values
   var actual  = getInputValue("actual-" + rowIndex);
   var good    = getInputValue("good-" + rowIndex);
   var monitor = getInputValue("monitor-" + rowIndex);
   var retired = getInputValue("retired-" + rowIndex);
 
-  // Calculate quality total and missing
   var qualityTotal = good + monitor + retired;
   var missing = expected - actual;
 
-  // Update the missing qty display
-  var missingEl = document.getElementById("missing-" + rowIndex);
-  var warningEl = document.getElementById("warning-" + rowIndex);
-  var cardEl    = document.getElementById("card-" + rowIndex);
-
-  // Show missing value (or dash if actual is 0/blank)
+  var missingEl   = document.getElementById("missing-" + rowIndex);
+  var warningEl   = document.getElementById("warning-" + rowIndex);
+  var cardEl      = document.getElementById("card-" + rowIndex);
   var actualInput = document.getElementById("actual-" + rowIndex);
+
+  // Update missing display
   if (actualInput.value === "") {
     missingEl.textContent = "—";
     missingEl.className = "missing-value";
@@ -311,44 +362,57 @@ function validateRow(rowIndex) {
     }
   }
 
-  // Check if any quality inputs have been entered
+  // Check quality inputs
   var goodInput    = document.getElementById("good-" + rowIndex);
   var monitorInput = document.getElementById("monitor-" + rowIndex);
   var retiredInput = document.getElementById("retired-" + rowIndex);
   var hasQualityInput = goodInput.value !== "" || monitorInput.value !== "" || retiredInput.value !== "";
 
-  // Validate: Actual must equal Good + Monitor + Retired
+  // Determine warning message
   if (actualInput.value === "" && !hasQualityInput) {
     warningEl.classList.add("hidden");
     warningEl.textContent = "";
-    cardEl.classList.remove("card-error", "card-valid");
+    cardEl.classList.remove("card-error", "card-valid", "card-retired");
   } else if (actualInput.value === "") {
     warningEl.classList.remove("hidden");
     warningEl.textContent = "⚠ Enter Actual Qty first.";
     cardEl.classList.add("card-error");
-    cardEl.classList.remove("card-valid");
+    cardEl.classList.remove("card-valid", "card-retired");
   } else if (actual !== qualityTotal) {
     warningEl.classList.remove("hidden");
     warningEl.textContent = "⚠ Actual (" + actual + ") ≠ Good + Monitor + Retired (" + qualityTotal + ")";
     cardEl.classList.add("card-error");
-    cardEl.classList.remove("card-valid");
+    cardEl.classList.remove("card-valid", "card-retired");
+  } else if (retired > 0 && !isRetiredValid(rowIndex)) {
+    // Quantities match but retired details incomplete
+    warningEl.classList.remove("hidden");
+    warningEl.textContent = "⚠ Fill in retired gear details: damage description and confirm moved to box.";
+    cardEl.classList.add("card-retired");
+    cardEl.classList.remove("card-error", "card-valid");
   } else {
     warningEl.classList.add("hidden");
     warningEl.textContent = "";
-    cardEl.classList.remove("card-error");
+    cardEl.classList.remove("card-error", "card-retired");
     cardEl.classList.add("card-valid");
+    // Add retired styling if has retired items
+    if (retired > 0) {
+      cardEl.classList.add("card-retired-valid");
+    } else {
+      cardEl.classList.remove("card-retired-valid");
+    }
   }
 }
 
 
 // ============================================================
-// validateAllRows — checks every row and updates the submit button
+// validateAllRows — checks every row and updates submit button
 // ============================================================
 
 function validateAllRows() {
   var totalRows = currentGearList.length;
   var validRows = 0;
   var errorRows = 0;
+  var retiredIncomplete = 0;
 
   for (var i = 0; i < totalRows; i++) {
     var actualInput = document.getElementById("actual-" + i);
@@ -362,21 +426,26 @@ function validateAllRows() {
       continue;
     }
 
-    if (actual === qualityTotal) {
-      validRows++;
-    } else {
+    if (actual !== qualityTotal) {
       errorRows++;
+    } else if (retired > 0 && !isRetiredValid(i)) {
+      retiredIncomplete++;
+    } else {
+      validRows++;
     }
   }
 
-  // Also check if inspector name is filled
   var hasInspector = inspectorInput.value.trim() !== "";
 
-  // Update validation summary
+  // Update summary
   if (errorRows > 0) {
     validationSummary.innerHTML =
       '<div class="summary-error">⚠ ' + errorRows + ' item' + (errorRows > 1 ? 's have' : ' has') +
       ' mismatched totals. Fix before submitting.</div>';
+  } else if (retiredIncomplete > 0) {
+    validationSummary.innerHTML =
+      '<div class="summary-error">⚠ ' + retiredIncomplete + ' item' + (retiredIncomplete > 1 ? 's need' : ' needs') +
+      ' retired gear details completed.</div>';
   } else if (!hasInspector) {
     validationSummary.innerHTML =
       '<div class="summary-info">Enter your name above to enable submit.</div>';
@@ -390,7 +459,6 @@ function validateAllRows() {
       '<div class="summary-ok">✓ All ' + totalRows + ' items validated. Ready to submit.</div>';
   }
 
-  // Enable submit only when all rows valid AND inspector name filled
   if (validRows === totalRows && totalRows > 0 && hasInspector) {
     submitBtn.disabled = false;
   } else {
@@ -401,23 +469,16 @@ function validateAllRows() {
 
 // ============================================================
 // submitInspection — collects form data and sends to API
-//
-// Builds one object per gear item row and sends them all
-// to the backend in a single POST request.
-// The backend creates one shared submission_id for all rows.
+// Now includes retired gear data when retired_qty > 0
 // ============================================================
 
 async function submitInspection() {
-
-  // Prevent double-clicks
   submitBtn.disabled = true;
   submitBtn.textContent = "Submitting…";
 
-  // Collect inspector info
   var inspector = inspectorInput.value.trim();
   var date = dateInput.value;
 
-  // Build an array of row data (one per gear item)
   var rows = [];
 
   for (var i = 0; i < currentGearList.length; i++) {
@@ -430,7 +491,7 @@ async function submitInspection() {
     var notesEl = document.getElementById("notes-" + i);
     var notes   = notesEl ? notesEl.value.trim() : "";
 
-    rows.push({
+    var rowData = {
       gear_type_id: item.gear_type_id,
       gear_name:    item.gear_name,
       expected_qty: item.expected_qty,
@@ -440,10 +501,22 @@ async function submitInspection() {
       retired_qty:  retired,
       missing_qty:  missing,
       notes:        notes
-    });
+    };
+
+    // Add retired gear details if retired > 0
+    if (retired > 0) {
+      var damageEl = document.getElementById("damage-" + i);
+      var movedEl  = document.getElementById("moved-" + i);
+      var actionEl = document.getElementById("action-" + i);
+
+      rowData.damage_detail       = damageEl ? damageEl.value.trim() : "";
+      rowData.moved_to_retired_box = movedEl && movedEl.checked ? "Yes" : "No";
+      rowData.action_needed       = actionEl ? actionEl.value.trim() : "";
+    }
+
+    rows.push(rowData);
   }
 
-  // Build the payload
   var payload = {
     date:      date,
     inspector: inspector,
@@ -451,10 +524,8 @@ async function submitInspection() {
     rows:      rows
   };
 
-  // Send to the API
   var result = await callAPI("submitInspection", payload, "POST");
 
-  // Handle errors
   if (!result.success) {
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit Inspection";
@@ -462,16 +533,20 @@ async function submitInspection() {
     return;
   }
 
-  // Success — show the success screen
+  // Success screen
   stepCategory.classList.add("hidden");
   stepGearList.classList.add("hidden");
   stepSuccess.classList.remove("hidden");
 
-  successDetails.textContent =
-    currentCategory + " inspection by " + inspector +
-    " on " + date + " — " + rows.length + " items saved." +
-    " (ID: " + result.submissionId + ")";
+  var retiredCount = result.retiredCount || 0;
+  var details = currentCategory + " inspection by " + inspector +
+    " on " + date + " — " + rows.length + " items saved.";
+  if (retiredCount > 0) {
+    details += " " + retiredCount + " retired gear record" + (retiredCount > 1 ? "s" : "") + " logged.";
+  }
+  details += " (ID: " + result.submissionId + ")";
 
+  successDetails.textContent = details;
   window.scrollTo(0, 0);
 }
 
@@ -486,7 +561,7 @@ inspectorInput.addEventListener("input", function() {
 
 
 // ============================================================
-// escapeHtml — prevents XSS by escaping special characters
+// escapeHtml — prevents XSS
 // ============================================================
 
 function escapeHtml(text) {
