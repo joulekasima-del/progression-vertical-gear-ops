@@ -8,5 +8,5 @@
  */
 
 const CONFIG = {
-  APP_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxBOkMILbZM30D2lMO1oJzlQsRPNJuC7ulcCA2ULQ1zt0vCa-sKJAQhCfOQ32ndnrOs-g/exec"
+  APP_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzJPV67UYPq8FiXdyU2m6JDjyAqw4wxr9OZjcOl3NYsBiZuZDCS2VR81qhAIOtdYZ8NOg/exec"
 };
