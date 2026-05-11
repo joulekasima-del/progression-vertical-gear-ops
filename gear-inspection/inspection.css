@@ -6,6 +6,7 @@
  * ============================================================
  */
 
+
 /* --- Selected category bar --- */
 .selected-category-bar {
   display: flex;
@@ -15,7 +16,7 @@
   background: var(--primary);
   color: #fff;
   border-radius: var(--radius);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -23,4 +24,241 @@
 .selected-category-bar .badge {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
+}
+
+
+/* --- Inspection card (one per gear item) --- */
+.inspection-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+/* Card valid state — green left border */
+.inspection-card.card-valid {
+  border-color: var(--success);
+  border-left-width: 4px;
+}
+
+/* Card error state — red left border */
+.inspection-card.card-error {
+  border-color: var(--danger);
+  border-left-width: 4px;
+}
+
+
+/* --- Card header: gear name + ID --- */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-gear-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+
+/* --- Quantity rows --- */
+.qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.qty-row label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-light);
+  min-width: 70px;
+}
+
+.qty-row-expected {
+  padding-bottom: 8px;
+}
+
+.expected-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+  background: #f0ece7;
+  padding: 4px 14px;
+  border-radius: 6px;
+}
+
+
+/* --- Quantity input fields --- */
+.qty-input {
+  width: 72px;
+  padding: 8px 10px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--surface);
+  color: var(--text);
+  -moz-appearance: textfield;  /* hide spinner in Firefox */
+}
+
+/* Hide number input spinners */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qty-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
+}
+
+/* Color-coded borders for quality inputs */
+.qty-good:focus    { border-color: var(--success); box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15); }
+.qty-monitor:focus { border-color: var(--warning); box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15); }
+.qty-retired:focus { border-color: var(--danger);  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15); }
+
+
+/* --- Quality breakdown group --- */
+.quality-group {
+  margin: 8px 0;
+  padding: 10px;
+  background: #fafaf7;
+  border-radius: 6px;
+}
+
+.quality-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.quality-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.quality-field {
+  flex: 1;
+  text-align: center;
+}
+
+.quality-field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-light);
+}
+
+.quality-field .qty-input {
+  width: 100%;
+}
+
+
+/* --- Missing qty display --- */
+.qty-row-missing {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.missing-value {
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 4px 14px;
+  border-radius: 6px;
+}
+
+.missing-ok {
+  color: var(--success);
+  background: #e8f5e9;
+}
+
+.missing-alert {
+  color: var(--danger);
+  background: #fdecea;
+}
+
+.missing-over {
+  color: var(--warning);
+  background: #fef5e7;
+}
+
+
+/* --- Card warning message --- */
+.card-warning {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #fdecea;
+  color: var(--danger);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+
+/* --- Validation summary (above submit button) --- */
+#validation-summary {
+  margin-bottom: 12px;
+}
+
+.summary-error {
+  padding: 10px 14px;
+  background: #fdecea;
+  color: var(--danger);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.summary-info {
+  padding: 10px 14px;
+  background: #fef5e7;
+  color: var(--warning);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.summary-ok {
+  padding: 10px 14px;
+  background: #e8f5e9;
+  color: var(--success);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+
+/* --- Submit button states --- */
+#submit-btn {
+  margin-top: 4px;
+  margin-bottom: 24px;
+}
+
+#submit-btn:disabled {
+  background: var(--border);
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+#submit-section {
+  margin-top: 8px;
 }
