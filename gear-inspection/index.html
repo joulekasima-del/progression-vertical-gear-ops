@@ -45,6 +45,18 @@
       <span id="gear-count" class="badge badge-count"></span>
     </div>
 
+    <!-- Inspector info fields -->
+    <div class="inspector-fields card">
+      <div class="field-row">
+        <label for="inspector-name">Inspector Name</label>
+        <input type="text" id="inspector-name" placeholder="Enter your name" autocomplete="off" />
+      </div>
+      <div class="field-row">
+        <label for="inspection-date">Date</label>
+        <input type="date" id="inspection-date" />
+      </div>
+    </div>
+
     <!-- Gear inspection form renders here -->
     <div id="gear-list-container">
       <!-- Filled by inspection.js -->
@@ -55,6 +67,18 @@
       <div id="validation-summary"></div>
       <button id="submit-btn" class="btn btn-primary btn-full" disabled>
         Submit Inspection
+      </button>
+    </div>
+  </section>
+
+  <!-- Step 3: Success screen (shown after successful submit) -->
+  <section id="step-success" class="hidden">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>Inspection Submitted</h2>
+      <p id="success-details"></p>
+      <button id="new-inspection-btn" class="btn btn-primary btn-full mt-16">
+        Start New Inspection
       </button>
     </div>
   </section>
