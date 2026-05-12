@@ -36,6 +36,10 @@ var checkoutValidation    = document.getElementById("checkout-validation");
 var checkoutSubmitBtn     = document.getElementById("checkout-submit-btn");
 var checkoutSuccessDetails = document.getElementById("checkout-success-details");
 var newCheckoutBtn        = document.getElementById("new-checkout-btn");
+var stepOutdoorRental     = document.getElementById("step-outdoor-rental");
+var btnOutdoorRental      = document.getElementById("btn-outdoor-rental");
+var rentalBackToMenu      = document.getElementById("rental-back-to-menu");
+var rentalItemsContainer  = document.getElementById("rental-items-container");
 
 
 // ============================================================
@@ -73,6 +77,20 @@ newCheckoutBtn.addEventListener("click", function() {
   stepCheckoutSuccess.classList.add("hidden");
   stepMenu.classList.remove("hidden");
   resetCheckoutForm();
+});
+
+// Open Outdoor Rental Check-Out
+btnOutdoorRental.addEventListener("click", function() {
+  stepMenu.classList.add("hidden");
+  stepOutdoorRental.classList.remove("hidden");
+  loadRentalItems();
+});
+
+// Back to menu from rental
+rentalBackToMenu.addEventListener("click", function() {
+  stepOutdoorRental.classList.add("hidden");
+  stepMenu.classList.remove("hidden");
+  rentalItemsContainer.innerHTML = "";
 });
 
 
@@ -344,6 +362,64 @@ async function submitCourseCheckout() {
     guideName + " on " + date + ". Status: Pending Return. (ID: " + result.checkoutId + ")";
 
   window.scrollTo(0, 0);
+}
+
+
+// ============================================================
+// loadRentalItems — fetches active rental items with prices
+// ============================================================
+
+async function loadRentalItems() {
+  rentalItemsContainer.innerHTML =
+    '<div class="status-message loading">Loading rental items…</div>';
+
+  var result = await callAPI("loadOutdoorRentalItems", {});
+
+  if (!result.success) {
+    rentalItemsContainer.innerHTML =
+      '<div class="status-message error">Error: ' + (result.error || "Unknown error") + '</div>';
+    return;
+  }
+
+  if (!result.data || result.data.length === 0) {
+    rentalItemsContainer.innerHTML =
+      '<div class="status-message empty">No active rental items found.</div>';
+    return;
+  }
+
+  renderRentalItems(result.data);
+}
+
+
+// ============================================================
+// renderRentalItems — builds rental item cards with prices
+// ============================================================
+
+function renderRentalItems(items) {
+  var html = '<div class="gear-template-header">';
+  html += '  <span>' + items.length + ' rental items</span>';
+  html += '  <span>Prices in THB/day</span>';
+  html += '</div>';
+
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+
+    html += '<div class="rental-item-card">';
+
+    html += '  <div class="rental-item-row">';
+    html += '    <div class="rental-item-info">';
+    html += '      <span class="rental-item-name">' + escapeHtml(item.item_name) + '</span>';
+    if (item.size_required === "Yes") {
+      html += '    <span class="rental-size-badge">Size needed</span>';
+    }
+    html += '    </div>';
+    html += '    <div class="rental-item-price">฿' + item.daily_rate + '</div>';
+    html += '  </div>';
+
+    html += '</div>';
+  }
+
+  rentalItemsContainer.innerHTML = html;
 }
 
 
