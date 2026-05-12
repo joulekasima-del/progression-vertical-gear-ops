@@ -40,6 +40,22 @@ var stepOutdoorRental     = document.getElementById("step-outdoor-rental");
 var btnOutdoorRental      = document.getElementById("btn-outdoor-rental");
 var rentalBackToMenu      = document.getElementById("rental-back-to-menu");
 var rentalItemsContainer  = document.getElementById("rental-items-container");
+var rentalCustomerName    = document.getElementById("rental-customer-name");
+var rentalCustomerEmail   = document.getElementById("rental-customer-email");
+var rentalCustomerPhone   = document.getElementById("rental-customer-phone");
+var rentalCheckoutDate    = document.getElementById("rental-checkout-date");
+var rentalReturnDate      = document.getElementById("rental-return-date");
+var rentalReturnTime      = document.getElementById("rental-return-time");
+var rentalDateWarning     = document.getElementById("rental-date-warning");
+var rentalStaffName       = document.getElementById("rental-staff-name");
+var rentalDepositType     = document.getElementById("rental-deposit-type");
+var depositCashField      = document.getElementById("deposit-cash-field");
+var rentalDepositAmount   = document.getElementById("rental-deposit-amount");
+var depositNoteField      = document.getElementById("deposit-note-field");
+var rentalDepositNote     = document.getElementById("rental-deposit-note");
+var rentalSubmitSection   = document.getElementById("rental-submit-section");
+var rentalValidation      = document.getElementById("rental-validation");
+var rentalSubmitBtn       = document.getElementById("rental-submit-btn");
 
 
 // ============================================================
@@ -48,6 +64,7 @@ var rentalItemsContainer  = document.getElementById("rental-items-container");
 
 var currentCourseGear = [];  // Gear template items for selected course
 var selectedCourseName = ""; // Name of selected course
+var currentRentalItems = []; // Rental items from OUTDOOR_RENTAL_MASTER
 
 
 // ============================================================
@@ -83,6 +100,7 @@ newCheckoutBtn.addEventListener("click", function() {
 btnOutdoorRental.addEventListener("click", function() {
   stepMenu.classList.add("hidden");
   stepOutdoorRental.classList.remove("hidden");
+  initRentalForm();
   loadRentalItems();
 });
 
@@ -90,7 +108,7 @@ btnOutdoorRental.addEventListener("click", function() {
 rentalBackToMenu.addEventListener("click", function() {
   stepOutdoorRental.classList.add("hidden");
   stepMenu.classList.remove("hidden");
-  rentalItemsContainer.innerHTML = "";
+  resetRentalForm();
 });
 
 
@@ -366,6 +384,115 @@ async function submitCourseCheckout() {
 
 
 // ============================================================
+// initRentalForm — sets default dates
+// ============================================================
+
+function initRentalForm() {
+  var today = new Date().toISOString().split("T")[0];
+  rentalCheckoutDate.value = today;
+
+  // Default return date to tomorrow
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  rentalReturnDate.value = tomorrow.toISOString().split("T")[0];
+
+  // Reset other fields
+  rentalCustomerName.value = "";
+  rentalCustomerEmail.value = "";
+  rentalCustomerPhone.value = "";
+  rentalStaffName.value = "";
+  rentalDepositType.value = "";
+  rentalDepositAmount.value = "10000";
+  rentalDepositNote.value = "";
+  depositCashField.classList.add("hidden");
+  depositNoteField.classList.add("hidden");
+  rentalDateWarning.classList.add("hidden");
+  rentalSubmitSection.classList.add("hidden");
+  currentRentalItems = [];
+}
+
+
+// ============================================================
+// resetRentalForm — clears everything
+// ============================================================
+
+function resetRentalForm() {
+  rentalCustomerName.value = "";
+  rentalCustomerEmail.value = "";
+  rentalCustomerPhone.value = "";
+  rentalCheckoutDate.value = "";
+  rentalReturnDate.value = "";
+  rentalStaffName.value = "";
+  rentalDepositType.value = "";
+  rentalDepositAmount.value = "10000";
+  rentalDepositNote.value = "";
+  depositCashField.classList.add("hidden");
+  depositNoteField.classList.add("hidden");
+  rentalDateWarning.classList.add("hidden");
+  rentalSubmitSection.classList.add("hidden");
+  rentalItemsContainer.innerHTML = "";
+  currentRentalItems = [];
+}
+
+
+// ============================================================
+// DEPOSIT TYPE TOGGLE — show/hide deposit fields
+// ============================================================
+
+rentalDepositType.addEventListener("change", function() {
+  var type = rentalDepositType.value;
+
+  if (type === "Cash") {
+    depositCashField.classList.remove("hidden");
+    depositNoteField.classList.add("hidden");
+  } else if (type === "Passport") {
+    depositCashField.classList.add("hidden");
+    depositNoteField.classList.remove("hidden");
+    rentalDepositNote.placeholder = "Passport country (do NOT enter full passport number)";
+  } else if (type === "Other") {
+    depositCashField.classList.add("hidden");
+    depositNoteField.classList.remove("hidden");
+    rentalDepositNote.placeholder = "Describe the deposit arrangement";
+  } else {
+    depositCashField.classList.add("hidden");
+    depositNoteField.classList.add("hidden");
+  }
+
+  validateRental();
+});
+
+
+// ============================================================
+// DATE VALIDATION — warn if return is before checkout
+// ============================================================
+
+rentalCheckoutDate.addEventListener("change", function() { validateDates(); validateRental(); });
+rentalReturnDate.addEventListener("change", function() { validateDates(); validateRental(); });
+
+function validateDates() {
+  var checkout = rentalCheckoutDate.value;
+  var returnD = rentalReturnDate.value;
+
+  if (checkout && returnD && returnD < checkout) {
+    rentalDateWarning.textContent = "⚠ Return date is before check-out date.";
+    rentalDateWarning.classList.remove("hidden");
+  } else {
+    rentalDateWarning.classList.add("hidden");
+  }
+}
+
+
+// ============================================================
+// RENTAL FORM INPUT LISTENERS — re-validate on every change
+// ============================================================
+
+rentalCustomerName.addEventListener("input", function() { validateRental(); });
+rentalCustomerPhone.addEventListener("input", function() { validateRental(); });
+rentalStaffName.addEventListener("input", function() { validateRental(); });
+rentalDepositAmount.addEventListener("input", function() { validateRental(); });
+
+
+// ============================================================
 // loadRentalItems — fetches active rental items with prices
 // ============================================================
 
@@ -387,18 +514,21 @@ async function loadRentalItems() {
     return;
   }
 
+  currentRentalItems = result.data;
   renderRentalItems(result.data);
+  rentalSubmitSection.classList.remove("hidden");
+  validateRental();
 }
 
 
 // ============================================================
-// renderRentalItems — builds rental item cards with prices
+// renderRentalItems — builds rental item cards with qty inputs
 // ============================================================
 
 function renderRentalItems(items) {
   var html = '<div class="gear-template-header">';
   html += '  <span>' + items.length + ' rental items</span>';
-  html += '  <span>Prices in THB/day</span>';
+  html += '  <span>THB/day</span>';
   html += '</div>';
 
   for (var i = 0; i < items.length; i++) {
@@ -406,20 +536,112 @@ function renderRentalItems(items) {
 
     html += '<div class="rental-item-card">';
 
+    // Item name, price, qty
     html += '  <div class="rental-item-row">';
     html += '    <div class="rental-item-info">';
     html += '      <span class="rental-item-name">' + escapeHtml(item.item_name) + '</span>';
-    if (item.size_required === "Yes") {
-      html += '    <span class="rental-size-badge">Size needed</span>';
-    }
     html += '    </div>';
     html += '    <div class="rental-item-price">฿' + item.daily_rate + '</div>';
+    html += '    <div class="rental-item-qty">';
+    html += '      <input type="number" id="rental-qty-' + i + '" class="qty-input rental-qty"';
+    html += '        value="0" min="0" inputmode="numeric" data-row="' + i + '" />';
+    html += '    </div>';
     html += '  </div>';
+
+    // Size field (only if size_required = Yes)
+    if (item.size_required === "Yes") {
+      html += '  <div class="rental-size-row" id="rental-size-row-' + i + '">';
+      html += '    <label for="rental-size-' + i + '">Size</label>';
+      html += '    <input type="text" id="rental-size-' + i + '" class="rental-size-input"';
+      html += '      placeholder="e.g., S, M, L, 40, 42" autocomplete="off" />';
+      html += '  </div>';
+    }
 
     html += '</div>';
   }
 
   rentalItemsContainer.innerHTML = html;
+
+  // Attach qty input listeners
+  var qtyInputs = rentalItemsContainer.querySelectorAll(".rental-qty");
+  qtyInputs.forEach(function(input) {
+    input.addEventListener("input", function() {
+      validateRental();
+    });
+  });
+}
+
+
+// ============================================================
+// validateRental — checks all required fields
+// ============================================================
+
+function validateRental() {
+  var errors = [];
+
+  // Customer name
+  if (rentalCustomerName.value.trim() === "") {
+    errors.push("Customer name is required.");
+  }
+
+  // Customer phone
+  if (rentalCustomerPhone.value.trim() === "") {
+    errors.push("Customer phone is required.");
+  }
+
+  // Return date
+  if (rentalReturnDate.value === "") {
+    errors.push("Planned return date is required.");
+  }
+
+  // Date order
+  if (rentalCheckoutDate.value && rentalReturnDate.value && rentalReturnDate.value < rentalCheckoutDate.value) {
+    errors.push("Return date cannot be before check-out date.");
+  }
+
+  // Staff name
+  if (rentalStaffName.value.trim() === "") {
+    errors.push("Check-out staff name is required.");
+  }
+
+  // Deposit type
+  var depositType = rentalDepositType.value;
+  if (depositType === "") {
+    errors.push("Deposit type is required.");
+  }
+
+  // Cash deposit amount
+  if (depositType === "Cash") {
+    var amt = parseInt(rentalDepositAmount.value, 10);
+    if (isNaN(amt) || amt <= 0) {
+      errors.push("Deposit amount is required for cash deposit.");
+    }
+  }
+
+  // At least one rental item with qty > 0
+  var totalItems = 0;
+  for (var i = 0; i < currentRentalItems.length; i++) {
+    var el = document.getElementById("rental-qty-" + i);
+    var val = el ? parseInt(el.value, 10) : 0;
+    if (!isNaN(val) && val > 0) {
+      totalItems++;
+    }
+  }
+  if (currentRentalItems.length > 0 && totalItems === 0) {
+    errors.push("Select at least one rental item (quantity > 0).");
+  }
+
+  // Update validation summary
+  if (errors.length > 0) {
+    rentalValidation.innerHTML =
+      '<div class="summary-error">⚠ ' + errors[0] + '</div>';
+    rentalSubmitBtn.disabled = true;
+  } else {
+    rentalValidation.innerHTML =
+      '<div class="summary-ok">✓ ' + totalItems + ' item' + (totalItems > 1 ? 's' : '') +
+      ' ready. All details complete.</div>';
+    rentalSubmitBtn.disabled = false;
+  }
 }
 
 
