@@ -35,6 +35,10 @@ var inspectorInput     = document.getElementById("inspector-name");
 var dateInput          = document.getElementById("inspection-date");
 var successDetails     = document.getElementById("success-details");
 var newInspectionBtn   = document.getElementById("new-inspection-btn");
+var dashboardDate      = document.getElementById("dashboard-date");
+
+// All 5 required categories
+var ALL_CATEGORIES = ["FIT", "Gym", "Caving", "Outdoor Rental", "Route Setting"];
 
 
 // ============================================================
@@ -46,10 +50,22 @@ var currentGearList = [];
 
 
 // ============================================================
-// INIT — set today's date as default
+// INIT — set today's date and load dashboard
 // ============================================================
 
-dateInput.value = new Date().toISOString().split("T")[0];
+var today = new Date().toISOString().split("T")[0];
+dateInput.value = today;
+dashboardDate.value = today;
+loadDashboard(today);
+
+
+// ============================================================
+// DASHBOARD DATE CHANGE — reload dashboard for new date
+// ============================================================
+
+dashboardDate.addEventListener("change", function() {
+  loadDashboard(dashboardDate.value);
+});
 
 
 // ============================================================
@@ -91,6 +107,67 @@ newInspectionBtn.addEventListener("click", function() {
   stepSuccess.classList.add("hidden");
   window.scrollTo(0, 0);
 });
+
+
+// ============================================================
+// loadDashboard — loads inspection status for a given date
+// ============================================================
+
+async function loadDashboard(date) {
+  // Set all categories to loading state
+  ALL_CATEGORIES.forEach(function(cat) {
+    setStatusBadge(cat, "loading", "…");
+  });
+
+  var result = await callAPI("loadDashboard", { date: date });
+
+  if (!result.success) {
+    ALL_CATEGORIES.forEach(function(cat) {
+      setStatusBadge(cat, "error", "Error");
+    });
+    return;
+  }
+
+  var statuses = result.data || {};
+
+  // Update each category badge
+  ALL_CATEGORIES.forEach(function(cat) {
+    var info = statuses[cat];
+
+    if (!info || info.status === "Pending") {
+      setStatusBadge(cat, "pending", "Pending");
+    } else if (info.status === "Completed") {
+      setStatusBadge(cat, "completed", "✓ Done");
+    } else if (info.status === "Completed with retired gear") {
+      setStatusBadge(cat, "retired", "⚠ Retired");
+    } else if (info.status === "Completed with issue") {
+      setStatusBadge(cat, "issue", "⚠ Issue");
+    } else {
+      setStatusBadge(cat, "completed", "✓ Done");
+    }
+  });
+}
+
+
+// ============================================================
+// setStatusBadge — updates the status badge on a category button
+// ============================================================
+
+function setStatusBadge(category, statusClass, text) {
+  var badge = document.getElementById("status-" + category);
+  if (!badge) return;
+
+  badge.textContent = text;
+  badge.className = "cat-status status-" + statusClass;
+
+  // Also update the parent button's visual style
+  var btn = badge.closest(".category-btn");
+  if (!btn) return;
+
+  // Remove all status classes from button
+  btn.classList.remove("btn-pending", "btn-completed", "btn-issue", "btn-retired");
+  btn.classList.add("btn-" + statusClass);
+}
 
 
 // ============================================================
@@ -548,6 +625,9 @@ async function submitInspection() {
 
   successDetails.textContent = details;
   window.scrollTo(0, 0);
+
+  // Refresh dashboard so the category status updates
+  loadDashboard(date);
 }
 
 
