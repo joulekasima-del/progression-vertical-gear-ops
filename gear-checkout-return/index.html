@@ -53,12 +53,28 @@
 
     <h2>Course Gear Check-Out</h2>
 
-    <!-- Course selection dropdown -->
-    <div class="form-group">
-      <label for="course-select">Select Course</label>
-      <select id="course-select">
-        <option value="">— Choose a course —</option>
-      </select>
+    <!-- Staff and course info -->
+    <div class="card form-card">
+      <div class="form-group">
+        <label for="guide-name">Guide / Staff Name</label>
+        <input type="text" id="guide-name" placeholder="Enter your name" autocomplete="off" />
+      </div>
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="checkout-date">Date</label>
+          <input type="date" id="checkout-date" />
+        </div>
+        <div class="form-group">
+          <label for="course-time">Course Time</label>
+          <input type="time" id="course-time" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="course-select">Select Course</label>
+        <select id="course-select">
+          <option value="">— Choose a course —</option>
+        </select>
+      </div>
     </div>
 
     <!-- Gear list renders here after course is selected -->
@@ -66,6 +82,26 @@
       <!-- Filled by checkout-return.js -->
     </div>
 
+    <!-- Submit section (hidden until gear is loaded) -->
+    <div id="checkout-submit-section" class="hidden">
+      <div id="checkout-validation"></div>
+      <button id="checkout-submit-btn" class="btn btn-primary btn-full" disabled>
+        Check Out Gear
+      </button>
+    </div>
+
+  </section>
+
+  <!-- Step 3: Success screen -->
+  <section id="step-checkout-success" class="hidden">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>Gear Checked Out</h2>
+      <p id="checkout-success-details"></p>
+      <button id="new-checkout-btn" class="btn btn-primary btn-full mt-16">
+        New Check-Out
+      </button>
+    </div>
   </section>
 
   <!-- Scripts -->
