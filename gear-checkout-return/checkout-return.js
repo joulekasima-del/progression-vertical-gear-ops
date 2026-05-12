@@ -51,10 +51,6 @@ var selectedCourseName = ""; // Name of selected course
 // ============================================================
 
 checkoutDateInput.value = new Date().toISOString().split("T")[0];
-var now = new Date();
-var hh = String(now.getHours()).padStart(2, "0");
-var mm = String(now.getMinutes()).padStart(2, "0");
-courseTimeInput.value = hh + ":" + mm;
 
 
 // ============================================================
@@ -90,8 +86,7 @@ function resetCheckoutForm() {
   checkoutSubmitSection.classList.add("hidden");
   guideNameInput.value = "";
   checkoutDateInput.value = new Date().toISOString().split("T")[0];
-  var n = new Date();
-  courseTimeInput.value = String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
+  courseTimeInput.value = "Full-Day";
   currentCourseGear = [];
   selectedCourseName = "";
 }
