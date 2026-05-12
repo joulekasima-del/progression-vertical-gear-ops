@@ -7,6 +7,122 @@
  */
 
 
+/* --- Dashboard date bar --- */
+.dashboard-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+
+.dashboard-bar label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.dashboard-bar input[type="date"] {
+  padding: 6px 10px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.dashboard-bar input[type="date"]:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+
+/* --- Category buttons with status badges --- */
+.category-btn {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cat-name {
+  font-size: 0.95rem;
+}
+
+.cat-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+}
+
+/* Status badge colors */
+.status-loading {
+  background: #f0ece7;
+  color: var(--text-light);
+}
+
+.status-pending {
+  background: #fef5e7;
+  color: var(--warning);
+}
+
+.status-completed {
+  background: #e8f5e9;
+  color: var(--success);
+}
+
+.status-issue {
+  background: #fff3e0;
+  color: var(--warning);
+}
+
+.status-retired {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+.status-error {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+/* Button border color by status */
+.category-btn.btn-completed {
+  border-color: var(--success);
+  background: #f6fbf7;
+}
+
+.category-btn.btn-completed.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.category-btn.btn-issue {
+  border-color: var(--warning);
+  background: #fffbf5;
+}
+
+.category-btn.btn-issue.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.category-btn.btn-retired {
+  border-color: var(--danger);
+  background: #fef8f7;
+}
+
+.category-btn.btn-retired.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+
 /* --- Selected category bar --- */
 .selected-category-bar {
   display: flex;
