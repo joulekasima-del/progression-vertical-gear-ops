@@ -383,3 +383,119 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+
+/* --- Rental item qty input --- */
+.rental-item-qty {
+  flex-shrink: 0;
+}
+
+.rental-item-qty .qty-input {
+  width: 56px;
+  padding: 6px 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text);
+  background: var(--surface);
+  -moz-appearance: textfield;
+}
+
+.rental-item-qty .qty-input::-webkit-outer-spin-button,
+.rental-item-qty .qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rental-item-qty .qty-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
+}
+
+
+/* --- Rental size row --- */
+.rental-size-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.rental-size-row label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+.rental-size-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.rental-size-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
+}
+
+
+/* --- Form section label --- */
+.form-section-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+
+/* --- Required asterisk --- */
+.required {
+  color: var(--danger);
+}
+
+
+/* --- Field warning --- */
+.field-warning {
+  padding: 6px 10px;
+  background: #fef5e7;
+  color: var(--warning);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+
+/* --- Rental submit section --- */
+#rental-submit-section {
+  margin-top: 8px;
+}
+
+#rental-validation {
+  margin-bottom: 12px;
+}
+
+#rental-submit-btn {
+  margin-bottom: 24px;
+}
+
+#rental-submit-btn:disabled {
+  background: var(--border);
+  color: var(--text-light);
+  cursor: not-allowed;
+}
