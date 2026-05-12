@@ -25,14 +25,37 @@
     </div>
   </div>
 
-  <!-- Step 1: Category selection -->
+  <!-- Step 1: Category selection with dashboard -->
   <section id="step-category">
+
+    <!-- Dashboard date picker -->
+    <div class="dashboard-bar">
+      <label for="dashboard-date">Inspection Status for</label>
+      <input type="date" id="dashboard-date" />
+    </div>
+
+    <!-- Category buttons with status badges -->
     <div class="category-grid">
-      <button class="category-btn" data-category="FIT">FIT</button>
-      <button class="category-btn" data-category="Gym">Gym</button>
-      <button class="category-btn" data-category="Caving">Caving</button>
-      <button class="category-btn" data-category="Outdoor Rental">Outdoor Rental</button>
-      <button class="category-btn" data-category="Route Setting">Route Setting</button>
+      <button class="category-btn" data-category="FIT">
+        <span class="cat-name">FIT</span>
+        <span id="status-FIT" class="cat-status"></span>
+      </button>
+      <button class="category-btn" data-category="Gym">
+        <span class="cat-name">Gym</span>
+        <span id="status-Gym" class="cat-status"></span>
+      </button>
+      <button class="category-btn" data-category="Caving">
+        <span class="cat-name">Caving</span>
+        <span id="status-Caving" class="cat-status"></span>
+      </button>
+      <button class="category-btn" data-category="Outdoor Rental">
+        <span class="cat-name">Outdoor Rental</span>
+        <span id="status-Outdoor Rental" class="cat-status"></span>
+      </button>
+      <button class="category-btn" data-category="Route Setting">
+        <span class="cat-name">Route Setting</span>
+        <span id="status-Route Setting" class="cat-status"></span>
+      </button>
     </div>
   </section>
 
