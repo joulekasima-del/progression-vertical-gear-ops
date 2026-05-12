@@ -114,9 +114,87 @@
 
     <h2>Outdoor Rental Check-Out</h2>
 
+    <!-- Customer info -->
+    <div class="card form-card">
+      <div class="form-section-label">Customer Details</div>
+      <div class="form-group">
+        <label for="rental-customer-name">Customer Name <span class="required">*</span></label>
+        <input type="text" id="rental-customer-name" placeholder="Full name" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="rental-customer-email">Email</label>
+        <input type="email" id="rental-customer-email" placeholder="email@example.com" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="rental-customer-phone">Phone <span class="required">*</span></label>
+        <input type="tel" id="rental-customer-phone" placeholder="Phone number" autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- Rental dates -->
+    <div class="card form-card">
+      <div class="form-section-label">Rental Dates</div>
+      <div class="form-group">
+        <label for="rental-checkout-date">Check-Out Date</label>
+        <input type="date" id="rental-checkout-date" />
+      </div>
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="rental-return-date">Planned Return Date <span class="required">*</span></label>
+          <input type="date" id="rental-return-date" />
+        </div>
+        <div class="form-group">
+          <label for="rental-return-time">Return Time</label>
+          <select id="rental-return-time">
+            <option value="Before 10:00">Before 10:00</option>
+            <option value="10:00 - 12:00">10:00 - 12:00</option>
+            <option value="12:00 - 14:00">12:00 - 14:00</option>
+            <option value="14:00 - 16:00">14:00 - 16:00</option>
+            <option value="16:00 - 18:00" selected>16:00 - 18:00</option>
+            <option value="After 18:00">After 18:00</option>
+          </select>
+        </div>
+      </div>
+      <div id="rental-date-warning" class="field-warning hidden"></div>
+    </div>
+
+    <!-- Staff and deposit -->
+    <div class="card form-card">
+      <div class="form-section-label">Staff & Deposit</div>
+      <div class="form-group">
+        <label for="rental-staff-name">Check-Out Staff Name <span class="required">*</span></label>
+        <input type="text" id="rental-staff-name" placeholder="Your name" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="rental-deposit-type">Deposit Type <span class="required">*</span></label>
+        <select id="rental-deposit-type">
+          <option value="">— Select deposit type —</option>
+          <option value="Cash">Cash (10,000 THB)</option>
+          <option value="Passport">Passport held</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div id="deposit-cash-field" class="form-group hidden">
+        <label for="rental-deposit-amount">Deposit Amount (THB) <span class="required">*</span></label>
+        <input type="number" id="rental-deposit-amount" value="10000" min="0" inputmode="numeric" />
+      </div>
+      <div id="deposit-note-field" class="form-group hidden">
+        <label for="rental-deposit-note">Deposit Note</label>
+        <input type="text" id="rental-deposit-note" placeholder="e.g., Passport country, other details" autocomplete="off" />
+      </div>
+    </div>
+
     <!-- Rental item list renders here -->
     <div id="rental-items-container">
       <!-- Filled by checkout-return.js -->
+    </div>
+
+    <!-- Rental validation and submit -->
+    <div id="rental-submit-section" class="hidden">
+      <div id="rental-validation"></div>
+      <button id="rental-submit-btn" class="btn btn-primary btn-full" disabled>
+        Check Out Rental Gear
+      </button>
     </div>
 
   </section>
