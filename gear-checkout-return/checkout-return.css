@@ -234,3 +234,101 @@
 .gear-card .notes-input::placeholder {
   color: #bbb;
 }
+
+
+/* --- Form card --- */
+.form-card {
+  margin-bottom: 16px;
+}
+
+.form-card .form-group {
+  margin-bottom: 12px;
+}
+
+.form-card .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="time"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
+}
+
+/* Two-column row for date + time */
+.form-row-2col {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row-2col .form-group {
+  flex: 1;
+}
+
+
+/* --- Checkout validation & submit --- */
+#checkout-submit-section {
+  margin-top: 8px;
+}
+
+#checkout-validation {
+  margin-bottom: 12px;
+}
+
+#checkout-submit-btn {
+  margin-bottom: 24px;
+}
+
+#checkout-submit-btn:disabled {
+  background: var(--border);
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+
+/* --- Success card (reused pattern) --- */
+.success-card {
+  background: var(--surface);
+  border: 2px solid var(--success);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.success-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  background: #e8f5e9;
+  color: var(--success);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.success-card h2 {
+  color: var(--success);
+  margin-bottom: 8px;
+}
+
+.success-card p {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
