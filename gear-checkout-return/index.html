@@ -1,14 +1,11 @@
-<!-- 
+<!--
   Gear Check-Out & Return System
-  ระบบเบิก-คืนอุปกรณ์
-  
+  Progression Vertical Operations System
+
   Staff use this app for:
     1. Course Gear Check-Out
-    2. Outdoor Rental Check-Out
-    3. Pending Gear Return Tasks
-  
-  Course and gear data comes from Google Sheets.
-  Submissions are saved to CHECKOUT_LOG and RETURN_LOG tabs.
+    2. Outdoor Rental Check-Out (future)
+    3. Pending Gear Return Tasks (future)
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -20,10 +17,58 @@
   <link rel="stylesheet" href="checkout-return.css" />
 </head>
 <body>
-  <h1>Gear Check-Out & Return</h1>
-  <p>ระบบเบิก-คืนอุปกรณ์</p>
-  <!-- Main menu and forms will go here -->
 
+  <!-- Page header -->
+  <div class="page-header">
+    <a href="../index.html" class="back-link" title="Home">←</a>
+    <div>
+      <h1>Gear Check-Out & Return</h1>
+      <div class="subtitle">ระบบเบิก-คืนอุปกรณ์</div>
+    </div>
+  </div>
+
+  <!-- Step 1: Main menu -->
+  <section id="step-menu">
+    <button class="menu-btn" id="btn-course-checkout">
+      <span class="menu-icon">📋</span>
+      <span class="menu-label">Course Gear Check-Out</span>
+    </button>
+    <button class="menu-btn" id="btn-outdoor-rental" disabled>
+      <span class="menu-icon">🏔</span>
+      <span class="menu-label">Outdoor Rental Check-Out</span>
+      <span class="menu-coming">Coming soon</span>
+    </button>
+    <button class="menu-btn" id="btn-pending-returns" disabled>
+      <span class="menu-icon">↩</span>
+      <span class="menu-label">Pending Gear Returns</span>
+      <span class="menu-coming">Coming soon</span>
+    </button>
+  </section>
+
+  <!-- Step 2: Course Gear Check-Out form -->
+  <section id="step-course-checkout" class="hidden">
+
+    <!-- Back to menu -->
+    <button id="back-to-menu" class="btn-back">← Back to menu</button>
+
+    <h2>Course Gear Check-Out</h2>
+
+    <!-- Course selection dropdown -->
+    <div class="form-group">
+      <label for="course-select">Select Course</label>
+      <select id="course-select">
+        <option value="">— Choose a course —</option>
+      </select>
+    </div>
+
+    <!-- Gear list renders here after course is selected -->
+    <div id="course-gear-container">
+      <!-- Filled by checkout-return.js -->
+    </div>
+
+  </section>
+
+  <!-- Scripts -->
   <script src="../shared/config.js"></script>
   <script src="../shared/api.js"></script>
   <script src="checkout-return.js"></script>
