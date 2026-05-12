@@ -33,10 +33,9 @@
       <span class="menu-icon">📋</span>
       <span class="menu-label">Course Gear Check-Out</span>
     </button>
-    <button class="menu-btn" id="btn-outdoor-rental" disabled>
+    <button class="menu-btn" id="btn-outdoor-rental">
       <span class="menu-icon">🏔</span>
       <span class="menu-label">Outdoor Rental Check-Out</span>
-      <span class="menu-coming">Coming soon</span>
     </button>
     <button class="menu-btn" id="btn-pending-returns" disabled>
       <span class="menu-icon">↩</span>
@@ -106,6 +105,20 @@
         New Check-Out
       </button>
     </div>
+  </section>
+
+  <!-- Step 4: Outdoor Rental Check-Out -->
+  <section id="step-outdoor-rental" class="hidden">
+
+    <button id="rental-back-to-menu" class="btn-back">← Back to menu</button>
+
+    <h2>Outdoor Rental Check-Out</h2>
+
+    <!-- Rental item list renders here -->
+    <div id="rental-items-container">
+      <!-- Filled by checkout-return.js -->
+    </div>
+
   </section>
 
   <!-- Scripts -->
