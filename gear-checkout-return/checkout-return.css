@@ -581,3 +581,40 @@
   color: var(--text-light);
   cursor: not-allowed;
 }
+
+
+/* --- Pricing summary --- */
+.pricing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.pricing-row:last-child {
+  border-bottom: none;
+}
+
+.pricing-row span:last-child {
+  font-weight: 600;
+  font-family: "SF Mono", "Consolas", monospace;
+}
+
+.pricing-total {
+  padding: 12px 0 4px;
+  border-bottom: none;
+  border-top: 2px solid var(--text);
+  font-size: 1.1rem;
+}
+
+.pricing-total span {
+  font-weight: 700 !important;
+  color: var(--primary);
+}
+
+.pricing-discount span:last-child {
+  color: var(--danger);
+}
