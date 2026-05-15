@@ -135,17 +135,31 @@
 
   function formatDisplayDate(dateVal) {
     if (!dateVal) return "—";
-    // Handle Date objects from Sheets
-    if (dateVal instanceof Date) {
-      return dateVal.toLocaleDateString("en-GB");
-    }
-    // Handle string dates like "2025-06-01"
+
+    var d;
+
+    // Handle ISO strings like "2026-05-14T17:00:00.000Z"
+    // and simple date strings like "2026-05-14"
     var str = String(dateVal);
-    if (str.indexOf("-") > -1) {
-      var parts = str.split("-");
-      return parts[2] + "/" + parts[1] + "/" + parts[0]; // DD/MM/YYYY
+    if (str.indexOf("T") > -1 || str.indexOf("-") > -1) {
+      d = new Date(str);
+    } else if (dateVal instanceof Date) {
+      d = dateVal;
+    } else {
+      return str;
     }
-    return str;
+
+    // Check valid date
+    if (isNaN(d.getTime())) return str;
+
+    // Format: "14 May 2026"
+    var months = ["January","February","March","April","May","June",
+                  "July","August","September","October","November","December"];
+    var day = d.getDate();
+    var month = months[d.getMonth()];
+    var year = d.getFullYear();
+
+    return day + " " + month + " " + year;
   }
 
   function escapeHtml(text) {
