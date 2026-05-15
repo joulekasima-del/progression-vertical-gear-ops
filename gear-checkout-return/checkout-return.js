@@ -522,7 +522,9 @@ async function loadRentalItems() {
 
 
 // ============================================================
-// renderRentalItems — builds rental item cards with qty inputs
+// renderRentalItems — builds rental item cards
+// Size-required items get add/remove size rows.
+// Non-size items get a simple qty box.
 // ============================================================
 
 function renderRentalItems(items) {
@@ -534,41 +536,199 @@ function renderRentalItems(items) {
   for (var i = 0; i < items.length; i++) {
     var item = items[i];
 
-    html += '<div class="rental-item-card">';
+    html += '<div class="rental-item-card" id="rental-card-' + i + '">';
 
-    // Item name, price, qty
+    // Item name and price
     html += '  <div class="rental-item-row">';
     html += '    <div class="rental-item-info">';
     html += '      <span class="rental-item-name">' + escapeHtml(item.item_name) + '</span>';
     html += '    </div>';
     html += '    <div class="rental-item-price">฿' + item.daily_rate + '</div>';
-    html += '    <div class="rental-item-qty">';
-    html += '      <input type="number" id="rental-qty-' + i + '" class="qty-input rental-qty"';
-    html += '        value="0" min="0" inputmode="numeric" data-row="' + i + '" />';
-    html += '    </div>';
-    html += '  </div>';
 
-    // Size field (only if size_required = Yes)
     if (item.size_required === "Yes") {
-      html += '  <div class="rental-size-row" id="rental-size-row-' + i + '">';
-      html += '    <label for="rental-size-' + i + '">Size</label>';
-      html += '    <input type="text" id="rental-size-' + i + '" class="rental-size-input"';
-      html += '      placeholder="e.g., S, M, L, 40, 42" autocomplete="off" />';
+      // Size-required: show total (calculated) instead of input
+      html += '    <div class="rental-item-total">';
+      html += '      Qty: <span id="rental-total-' + i + '" class="rental-total-value">0</span>';
+      html += '    </div>';
+    } else {
+      // Non-size: simple qty input
+      html += '    <div class="rental-item-qty">';
+      html += '      <input type="number" id="rental-qty-' + i + '" class="qty-input rental-qty"';
+      html += '        value="0" min="0" inputmode="numeric" data-row="' + i + '" />';
+      html += '    </div>';
+    }
+
+    html += '  </div>'; // end rental-item-row
+
+    // Size breakdown section (only for size-required items)
+    if (item.size_required === "Yes") {
+      html += '  <div class="size-breakdown" id="size-breakdown-' + i + '">';
+      html += '    <div class="size-rows" id="size-rows-' + i + '">';
+      html += '      <!-- Size rows inserted by JS -->';
+      html += '    </div>';
+      html += '    <button type="button" class="btn-add-size" data-row="' + i + '">+ Add size</button>';
       html += '  </div>';
     }
 
-    html += '</div>';
+    html += '</div>'; // end rental-item-card
   }
 
   rentalItemsContainer.innerHTML = html;
 
-  // Attach qty input listeners
+  // Attach qty input listeners (non-size items)
   var qtyInputs = rentalItemsContainer.querySelectorAll(".rental-qty");
   qtyInputs.forEach(function(input) {
     input.addEventListener("input", function() {
       validateRental();
     });
   });
+
+  // Attach "Add size" button listeners
+  var addBtns = rentalItemsContainer.querySelectorAll(".btn-add-size");
+  addBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var rowIndex = parseInt(btn.getAttribute("data-row"));
+      addSizeRow(rowIndex);
+    });
+  });
+}
+
+
+// ============================================================
+// addSizeRow — adds a new size + qty row for a size-required item
+// ============================================================
+
+function addSizeRow(itemIndex) {
+  var container = document.getElementById("size-rows-" + itemIndex);
+  var rowCount = container.querySelectorAll(".size-entry").length;
+  var rowId = itemIndex + "-" + rowCount;
+
+  var html = '<div class="size-entry" id="size-entry-' + rowId + '">';
+  html += '  <input type="text" class="size-entry-size" id="size-val-' + rowId + '"';
+  html += '    placeholder="Size (S, M, L, 38…)" autocomplete="off" />';
+  html += '  <input type="number" class="size-entry-qty" id="size-qty-' + rowId + '"';
+  html += '    value="1" min="1" inputmode="numeric" />';
+  html += '  <button type="button" class="size-entry-remove" data-entry="' + rowId + '"';
+  html += '    data-item="' + itemIndex + '">✕</button>';
+  html += '</div>';
+
+  container.insertAdjacentHTML("beforeend", html);
+
+  // Attach listeners to the new row
+  var sizeInput = document.getElementById("size-val-" + rowId);
+  var qtyInput = document.getElementById("size-qty-" + rowId);
+  var removeBtn = container.querySelector('[data-entry="' + rowId + '"]');
+
+  sizeInput.addEventListener("input", function() {
+    updateSizeTotal(itemIndex);
+    validateRental();
+  });
+
+  qtyInput.addEventListener("input", function() {
+    updateSizeTotal(itemIndex);
+    validateRental();
+  });
+
+  removeBtn.addEventListener("click", function() {
+    var entry = document.getElementById("size-entry-" + rowId);
+    entry.remove();
+    updateSizeTotal(itemIndex);
+    validateRental();
+  });
+
+  updateSizeTotal(itemIndex);
+  validateRental();
+
+  // Focus the new size input
+  sizeInput.focus();
+}
+
+
+// ============================================================
+// updateSizeTotal — recalculates total qty from size rows
+// ============================================================
+
+function updateSizeTotal(itemIndex) {
+  var container = document.getElementById("size-rows-" + itemIndex);
+  var qtyInputs = container.querySelectorAll(".size-entry-qty");
+  var total = 0;
+
+  qtyInputs.forEach(function(input) {
+    var val = parseInt(input.value, 10);
+    if (!isNaN(val) && val > 0) {
+      total += val;
+    }
+  });
+
+  var totalEl = document.getElementById("rental-total-" + itemIndex);
+  if (totalEl) {
+    totalEl.textContent = total;
+    // Highlight if has items
+    if (total > 0) {
+      totalEl.classList.add("has-qty");
+    } else {
+      totalEl.classList.remove("has-qty");
+    }
+  }
+}
+
+
+// ============================================================
+// getRentalItemQty — gets the total qty for a rental item
+// Works for both size-required (summed) and simple items.
+// ============================================================
+
+function getRentalItemQty(itemIndex) {
+  var item = currentRentalItems[itemIndex];
+
+  if (item.size_required === "Yes") {
+    // Sum from size rows
+    var container = document.getElementById("size-rows-" + itemIndex);
+    if (!container) return 0;
+    var qtyInputs = container.querySelectorAll(".size-entry-qty");
+    var total = 0;
+    qtyInputs.forEach(function(input) {
+      var val = parseInt(input.value, 10);
+      if (!isNaN(val) && val > 0) total += val;
+    });
+    return total;
+  } else {
+    // Simple qty input
+    var el = document.getElementById("rental-qty-" + itemIndex);
+    var val = el ? parseInt(el.value, 10) : 0;
+    return (!isNaN(val) && val > 0) ? val : 0;
+  }
+}
+
+
+// ============================================================
+// getSizeBreakdown — returns size breakdown string for an item
+// e.g., "S×2, M×3, L×1"
+// Returns empty string if no sizes.
+// ============================================================
+
+function getSizeBreakdown(itemIndex) {
+  var item = currentRentalItems[itemIndex];
+  if (item.size_required !== "Yes") return "";
+
+  var container = document.getElementById("size-rows-" + itemIndex);
+  if (!container) return "";
+
+  var entries = container.querySelectorAll(".size-entry");
+  var parts = [];
+
+  entries.forEach(function(entry) {
+    var sizeInput = entry.querySelector(".size-entry-size");
+    var qtyInput = entry.querySelector(".size-entry-qty");
+    var size = sizeInput ? sizeInput.value.trim() : "";
+    var qty = qtyInput ? parseInt(qtyInput.value, 10) : 0;
+
+    if (size && !isNaN(qty) && qty > 0) {
+      parts.push(size + "×" + qty);
+    }
+  });
+
+  return parts.join(", ");
 }
 
 
@@ -620,15 +780,37 @@ function validateRental() {
 
   // At least one rental item with qty > 0
   var totalItems = 0;
+  var missingSizeLabel = false;
   for (var i = 0; i < currentRentalItems.length; i++) {
-    var el = document.getElementById("rental-qty-" + i);
-    var val = el ? parseInt(el.value, 10) : 0;
-    if (!isNaN(val) && val > 0) {
+    var qty = getRentalItemQty(i);
+    if (qty > 0) {
       totalItems++;
+
+      // For size-required items, check that every size row has a label
+      if (currentRentalItems[i].size_required === "Yes") {
+        var container = document.getElementById("size-rows-" + i);
+        if (container) {
+          var entries = container.querySelectorAll(".size-entry");
+          entries.forEach(function(entry) {
+            var sizeInput = entry.querySelector(".size-entry-size");
+            var qtyInput = entry.querySelector(".size-entry-qty");
+            var sizeVal = sizeInput ? sizeInput.value.trim() : "";
+            var qtyVal = qtyInput ? parseInt(qtyInput.value, 10) : 0;
+            if (qtyVal > 0 && sizeVal === "") {
+              missingSizeLabel = true;
+            }
+          });
+        }
+      }
     }
   }
+
+  if (missingSizeLabel) {
+    errors.push("Enter a size label for every size row.");
+  }
+
   if (currentRentalItems.length > 0 && totalItems === 0) {
-    errors.push("Select at least one rental item (quantity > 0).");
+    errors.push("Select at least one rental item (add sizes or set quantity > 0).");
   }
 
   // Update validation summary
