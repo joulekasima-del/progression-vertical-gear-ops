@@ -65,6 +65,9 @@ var pricingSubtotal       = document.getElementById("pricing-subtotal");
 var pricingDiscountRow    = document.getElementById("pricing-discount-row");
 var pricingDiscount       = document.getElementById("pricing-discount");
 var pricingTotal          = document.getElementById("pricing-total");
+var stepRentalSuccess     = document.getElementById("step-rental-success");
+var rentalSuccessDetails  = document.getElementById("rental-success-details");
+var newRentalBtn          = document.getElementById("new-rental-btn");
 
 
 // ============================================================
@@ -118,6 +121,18 @@ rentalBackToMenu.addEventListener("click", function() {
   stepOutdoorRental.classList.add("hidden");
   stepMenu.classList.remove("hidden");
   resetRentalForm();
+});
+
+// New check-out from rental success
+newRentalBtn.addEventListener("click", function() {
+  stepRentalSuccess.classList.add("hidden");
+  stepMenu.classList.remove("hidden");
+  resetRentalForm();
+});
+
+// Submit outdoor rental
+rentalSubmitBtn.addEventListener("click", function() {
+  submitOutdoorRental();
 });
 
 
@@ -929,6 +944,104 @@ function validateRental() {
       ' ready. All details complete.</div>';
     rentalSubmitBtn.disabled = false;
   }
+}
+
+
+// ============================================================
+// submitOutdoorRental — collects all form data and sends to API
+// ============================================================
+
+async function submitOutdoorRental() {
+  rentalSubmitBtn.disabled = true;
+  rentalSubmitBtn.textContent = "Submitting…";
+
+  var rentalDays = getRentalDays();
+
+  // Calculate discount
+  var discType = rentalDiscountType.value;
+  var discInput = parseFloat(rentalDiscountValue.value) || 0;
+
+  // Build subtotal and item rows
+  var subtotal = 0;
+  var rows = [];
+
+  for (var i = 0; i < currentRentalItems.length; i++) {
+    var item = currentRentalItems[i];
+    var qty = getRentalItemQty(i);
+
+    if (qty === 0) continue; // Skip items with no quantity
+
+    var rate = Number(item.daily_rate) || 0;
+    var itemTotal = rate * qty * rentalDays;
+    subtotal += itemTotal;
+
+    // Get size breakdown for size-required items
+    var sizeText = "";
+    if (item.size_required === "Yes") {
+      sizeText = getSizeBreakdown(i);
+    }
+
+    rows.push({
+      gear_type_id:  item.gear_type_id,
+      gear_name:     item.item_name,
+      taken_qty:     qty,
+      size:          sizeText,
+      daily_rate:    rate,
+      item_total:    itemTotal,
+      notes:         ""
+    });
+  }
+
+  // Calculate discount amount
+  var discountAmount = 0;
+  if (discType === "Fixed") {
+    discountAmount = discInput;
+  } else if (discType === "Percent") {
+    discountAmount = Math.round(subtotal * discInput / 100);
+  }
+  var total = Math.max(subtotal - discountAmount, 0);
+
+  // Build payload
+  var payload = {
+    checkout_type:       "Outdoor Rental",
+    date:                rentalCheckoutDate.value,
+    customer_name:       rentalCustomerName.value.trim(),
+    customer_email:      rentalCustomerEmail.value.trim(),
+    customer_phone:      rentalCustomerPhone.value.trim(),
+    checkout_staff_name: rentalStaffName.value.trim(),
+    planned_return_date: rentalReturnDate.value,
+    planned_return_time: rentalReturnTime.value,
+    deposit_type:        rentalDepositType.value,
+    deposit_amount:      rentalDepositType.value === "Cash" ? (parseInt(rentalDepositAmount.value, 10) || 0) : "",
+    deposit_note:        rentalDepositNote.value.trim(),
+    rental_days:         rentalDays,
+    discount_type:       discType === "None" ? "" : discType,
+    discount_amount:     discountAmount,
+    subtotal_amount:     subtotal,
+    total_amount:        total,
+    rows:                rows
+  };
+
+  var result = await callAPI("submitOutdoorRental", payload, "POST");
+
+  if (!result.success) {
+    rentalSubmitBtn.disabled = false;
+    rentalSubmitBtn.textContent = "Check Out Rental Gear";
+    alert("Error: " + (result.error || "Unknown error"));
+    return;
+  }
+
+  // Show success
+  stepOutdoorRental.classList.add("hidden");
+  stepRentalSuccess.classList.remove("hidden");
+
+  rentalSuccessDetails.textContent =
+    payload.customer_name + " — " + result.rowCount + " items, " +
+    rentalDays + " day" + (rentalDays > 1 ? "s" : "") +
+    ", Total ฿" + total.toLocaleString() +
+    ". Status: Pending Return. (ID: " + result.checkoutId + ")";
+
+  window.scrollTo(0, 0);
 }
 
 
