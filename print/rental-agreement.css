@@ -79,6 +79,19 @@ body {
 }
 
 
+/* --- Two-column layout --- */
+.two-col {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+}
+
+.two-col > .section {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+
 /* --- Sections --- */
 .section {
   margin-bottom: 14px;
@@ -108,7 +121,7 @@ body {
 }
 
 .detail-table .label {
-  width: 140px;
+  width: 80px;
   font-weight: 600;
   color: #555;
 }
@@ -149,8 +162,7 @@ body {
 }
 
 .pricing-table {
-  width: 300px;
-  margin-left: auto;
+  width: 100%;
   border-collapse: collapse;
 }
 
