@@ -189,6 +189,45 @@
       <!-- Filled by checkout-return.js -->
     </div>
 
+    <!-- Discount section -->
+    <div id="rental-discount-section" class="card form-card hidden">
+      <div class="form-section-label">Discount</div>
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="rental-discount-type">Discount Type</label>
+          <select id="rental-discount-type">
+            <option value="None">None</option>
+            <option value="Fixed">Fixed Amount (THB)</option>
+            <option value="Percent">Percentage (%)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="rental-discount-value">Value</label>
+          <input type="number" id="rental-discount-value" value="0" min="0" inputmode="numeric" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing summary -->
+    <div id="rental-pricing-section" class="card hidden">
+      <div class="pricing-row">
+        <span>Rental Days</span>
+        <span id="pricing-days">0</span>
+      </div>
+      <div class="pricing-row">
+        <span>Subtotal</span>
+        <span id="pricing-subtotal">฿0</span>
+      </div>
+      <div class="pricing-row pricing-discount hidden" id="pricing-discount-row">
+        <span>Discount</span>
+        <span id="pricing-discount">-฿0</span>
+      </div>
+      <div class="pricing-row pricing-total">
+        <span>Total</span>
+        <span id="pricing-total">฿0</span>
+      </div>
+    </div>
+
     <!-- Rental validation and submit -->
     <div id="rental-submit-section" class="hidden">
       <div id="rental-validation"></div>
