@@ -68,6 +68,7 @@ var pricingTotal          = document.getElementById("pricing-total");
 var stepRentalSuccess     = document.getElementById("step-rental-success");
 var rentalSuccessDetails  = document.getElementById("rental-success-details");
 var newRentalBtn          = document.getElementById("new-rental-btn");
+var printAgreementBtn     = document.getElementById("print-agreement-btn");
 
 
 // ============================================================
@@ -77,6 +78,7 @@ var newRentalBtn          = document.getElementById("new-rental-btn");
 var currentCourseGear = [];  // Gear template items for selected course
 var selectedCourseName = ""; // Name of selected course
 var currentRentalItems = []; // Rental items from OUTDOOR_RENTAL_MASTER
+var lastRentalCheckoutId = ""; // Last submitted rental checkout_id
 
 
 // ============================================================
@@ -128,6 +130,13 @@ newRentalBtn.addEventListener("click", function() {
   stepRentalSuccess.classList.add("hidden");
   stepMenu.classList.remove("hidden");
   resetRentalForm();
+});
+
+// Print rental agreement
+printAgreementBtn.addEventListener("click", function() {
+  if (lastRentalCheckoutId) {
+    window.open("../print/rental-agreement.html?id=" + encodeURIComponent(lastRentalCheckoutId), "_blank");
+  }
 });
 
 // Submit outdoor rental
@@ -1032,6 +1041,7 @@ async function submitOutdoorRental() {
   }
 
   // Show success
+  lastRentalCheckoutId = result.checkoutId;
   stepOutdoorRental.classList.add("hidden");
   stepRentalSuccess.classList.remove("hidden");
 
