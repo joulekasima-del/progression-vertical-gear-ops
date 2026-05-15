@@ -56,6 +56,15 @@ var rentalDepositNote     = document.getElementById("rental-deposit-note");
 var rentalSubmitSection   = document.getElementById("rental-submit-section");
 var rentalValidation      = document.getElementById("rental-validation");
 var rentalSubmitBtn       = document.getElementById("rental-submit-btn");
+var rentalDiscountSection = document.getElementById("rental-discount-section");
+var rentalDiscountType    = document.getElementById("rental-discount-type");
+var rentalDiscountValue   = document.getElementById("rental-discount-value");
+var rentalPricingSection  = document.getElementById("rental-pricing-section");
+var pricingDays           = document.getElementById("pricing-days");
+var pricingSubtotal       = document.getElementById("pricing-subtotal");
+var pricingDiscountRow    = document.getElementById("pricing-discount-row");
+var pricingDiscount       = document.getElementById("pricing-discount");
+var pricingTotal          = document.getElementById("pricing-total");
 
 
 // ============================================================
@@ -408,6 +417,10 @@ function initRentalForm() {
   depositNoteField.classList.add("hidden");
   rentalDateWarning.classList.add("hidden");
   rentalSubmitSection.classList.add("hidden");
+  rentalDiscountSection.classList.add("hidden");
+  rentalPricingSection.classList.add("hidden");
+  rentalDiscountType.value = "None";
+  rentalDiscountValue.value = "0";
   currentRentalItems = [];
 }
 
@@ -430,6 +443,10 @@ function resetRentalForm() {
   depositNoteField.classList.add("hidden");
   rentalDateWarning.classList.add("hidden");
   rentalSubmitSection.classList.add("hidden");
+  rentalDiscountSection.classList.add("hidden");
+  rentalPricingSection.classList.add("hidden");
+  rentalDiscountType.value = "None";
+  rentalDiscountValue.value = "0";
   rentalItemsContainer.innerHTML = "";
   currentRentalItems = [];
 }
@@ -466,8 +483,8 @@ rentalDepositType.addEventListener("change", function() {
 // DATE VALIDATION — warn if return is before checkout
 // ============================================================
 
-rentalCheckoutDate.addEventListener("change", function() { validateDates(); validateRental(); });
-rentalReturnDate.addEventListener("change", function() { validateDates(); validateRental(); });
+rentalCheckoutDate.addEventListener("change", function() { validateDates(); calculatePricing(); validateRental(); });
+rentalReturnDate.addEventListener("change", function() { validateDates(); calculatePricing(); validateRental(); });
 
 function validateDates() {
   var checkout = rentalCheckoutDate.value;
@@ -480,6 +497,14 @@ function validateDates() {
     rentalDateWarning.classList.add("hidden");
   }
 }
+
+
+// ============================================================
+// DISCOUNT INPUT LISTENERS — recalculate on change
+// ============================================================
+
+rentalDiscountType.addEventListener("change", function() { calculatePricing(); validateRental(); });
+rentalDiscountValue.addEventListener("input", function() { calculatePricing(); validateRental(); });
 
 
 // ============================================================
@@ -517,6 +542,9 @@ async function loadRentalItems() {
   currentRentalItems = result.data;
   renderRentalItems(result.data);
   rentalSubmitSection.classList.remove("hidden");
+  rentalDiscountSection.classList.remove("hidden");
+  rentalPricingSection.classList.remove("hidden");
+  calculatePricing();
   validateRental();
 }
 
@@ -579,6 +607,7 @@ function renderRentalItems(items) {
   var qtyInputs = rentalItemsContainer.querySelectorAll(".rental-qty");
   qtyInputs.forEach(function(input) {
     input.addEventListener("input", function() {
+      calculatePricing();
       validateRental();
     });
   });
@@ -621,11 +650,13 @@ function addSizeRow(itemIndex) {
 
   sizeInput.addEventListener("input", function() {
     updateSizeTotal(itemIndex);
+    calculatePricing();
     validateRental();
   });
 
   qtyInput.addEventListener("input", function() {
     updateSizeTotal(itemIndex);
+    calculatePricing();
     validateRental();
   });
 
@@ -633,10 +664,12 @@ function addSizeRow(itemIndex) {
     var entry = document.getElementById("size-entry-" + rowId);
     entry.remove();
     updateSizeTotal(itemIndex);
+    calculatePricing();
     validateRental();
   });
 
   updateSizeTotal(itemIndex);
+  calculatePricing();
   validateRental();
 
   // Focus the new size input
@@ -729,6 +762,78 @@ function getSizeBreakdown(itemIndex) {
   });
 
   return parts.join(", ");
+}
+
+
+// ============================================================
+// getRentalDays — calculates days between checkout and return
+// Minimum 1 day (same-day rental counts as 1).
+// ============================================================
+
+function getRentalDays() {
+  var checkout = rentalCheckoutDate.value;
+  var returnD = rentalReturnDate.value;
+
+  if (!checkout || !returnD) return 0;
+  if (returnD < checkout) return 0;
+
+  var d1 = new Date(checkout);
+  var d2 = new Date(returnD);
+  var diffMs = d2 - d1;
+  var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  // Same-day rental = 1 day minimum
+  return Math.max(diffDays, 1);
+}
+
+
+// ============================================================
+// calculatePricing — updates subtotal, discount, total display
+//
+// Subtotal = sum of (daily_rate × qty × rental_days) per item
+// Discount = fixed amount or percentage of subtotal
+// Total = subtotal - discount (never negative)
+// ============================================================
+
+function calculatePricing() {
+  var rentalDays = getRentalDays();
+  var subtotal = 0;
+
+  // Calculate subtotal from all items
+  for (var i = 0; i < currentRentalItems.length; i++) {
+    var item = currentRentalItems[i];
+    var qty = getRentalItemQty(i);
+    var rate = Number(item.daily_rate) || 0;
+
+    subtotal += rate * qty * rentalDays;
+  }
+
+  // Calculate discount
+  var discountType = rentalDiscountType.value;
+  var discountInput = parseFloat(rentalDiscountValue.value) || 0;
+  var discountAmount = 0;
+
+  if (discountType === "Fixed") {
+    discountAmount = discountInput;
+  } else if (discountType === "Percent") {
+    discountAmount = Math.round(subtotal * discountInput / 100);
+  }
+
+  // Total cannot be negative
+  var total = Math.max(subtotal - discountAmount, 0);
+
+  // Update display
+  pricingDays.textContent = rentalDays > 0 ? rentalDays + (rentalDays === 1 ? " day" : " days") : "—";
+  pricingSubtotal.textContent = "฿" + subtotal.toLocaleString();
+  pricingTotal.textContent = "฿" + total.toLocaleString();
+
+  // Show/hide discount row
+  if (discountAmount > 0) {
+    pricingDiscountRow.classList.remove("hidden");
+    pricingDiscount.textContent = "-฿" + discountAmount.toLocaleString();
+  } else {
+    pricingDiscountRow.classList.add("hidden");
+  }
 }
 
 
