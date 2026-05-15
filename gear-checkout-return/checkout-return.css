@@ -416,37 +416,119 @@
 }
 
 
-/* --- Rental size row --- */
-.rental-size-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-  padding-top: 8px;
+/* --- Rental total qty (for size-required items) --- */
+.rental-item-total {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-align: center;
+  min-width: 56px;
+}
+
+.rental-total-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rental-total-value.has-qty {
+  color: var(--primary);
+}
+
+
+/* --- Size breakdown section --- */
+.size-breakdown {
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
 }
 
-.rental-size-row label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-light);
-  flex-shrink: 0;
+.size-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.rental-size-input {
+.size-entry-size {
   flex: 1;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border: 2px solid var(--border);
   border-radius: 6px;
   font-size: 0.9rem;
   color: var(--text);
   background: var(--surface);
 }
 
-.rental-size-input:focus {
+.size-entry-size:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
+}
+
+.size-entry-qty {
+  width: 60px;
+  padding: 8px 4px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text);
+  background: var(--surface);
+  -moz-appearance: textfield;
+}
+
+.size-entry-qty::-webkit-outer-spin-button,
+.size-entry-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.size-entry-qty:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
+}
+
+.size-entry-remove {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #fdecea;
+  color: var(--danger);
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.size-entry-remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-add-size {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.btn-add-size:hover {
+  border-color: var(--primary);
+  background: #f0f7f2;
 }
 
 
