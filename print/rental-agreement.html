@@ -34,24 +34,25 @@
       <span>Date: <strong id="ag-date"></strong></span>
     </div>
 
-    <!-- Customer details -->
-    <div class="section">
-      <div class="section-title">Customer Details</div>
-      <table class="detail-table">
-        <tr><td class="label">Name</td><td id="ag-customer-name"></td></tr>
-        <tr><td class="label">Email</td><td id="ag-customer-email"></td></tr>
-        <tr><td class="label">Phone</td><td id="ag-customer-phone"></td></tr>
-      </table>
-    </div>
+    <!-- Customer details + Rental period (two columns) -->
+    <div class="two-col">
+      <div class="section">
+        <div class="section-title">Customer Details</div>
+        <table class="detail-table">
+          <tr><td class="label">Name</td><td id="ag-customer-name"></td></tr>
+          <tr><td class="label">Email</td><td id="ag-customer-email"></td></tr>
+          <tr><td class="label">Phone</td><td id="ag-customer-phone"></td></tr>
+        </table>
+      </div>
 
-    <!-- Rental period -->
-    <div class="section">
-      <div class="section-title">Rental Period</div>
-      <table class="detail-table">
-        <tr><td class="label">Check-Out Date</td><td id="ag-checkout-date"></td></tr>
-        <tr><td class="label">Planned Return</td><td id="ag-return-date"></td></tr>
-        <tr><td class="label">Rental Days</td><td id="ag-rental-days"></td></tr>
-      </table>
+      <div class="section">
+        <div class="section-title">Rental Period</div>
+        <table class="detail-table">
+          <tr><td class="label">Check-Out</td><td id="ag-checkout-date"></td></tr>
+          <tr><td class="label">Return</td><td id="ag-return-date"></td></tr>
+          <tr><td class="label">Days</td><td id="ag-rental-days"></td></tr>
+        </table>
+      </div>
     </div>
 
     <!-- Rental items -->
@@ -73,32 +74,34 @@
       </table>
     </div>
 
-    <!-- Pricing -->
-    <div class="section pricing-section">
-      <table class="pricing-table">
-        <tr>
-          <td>Subtotal</td>
-          <td class="num" id="ag-subtotal"></td>
-        </tr>
-        <tr id="ag-discount-row" class="hidden">
-          <td>Discount (<span id="ag-discount-label"></span>)</td>
-          <td class="num" id="ag-discount"></td>
-        </tr>
-        <tr class="total-row">
-          <td><strong>Total</strong></td>
-          <td class="num"><strong id="ag-total"></strong></td>
-        </tr>
-      </table>
-    </div>
+    <!-- Pricing + Deposit (two columns) -->
+    <div class="two-col">
+      <div class="section pricing-section">
+        <div class="section-title">Pricing</div>
+        <table class="pricing-table">
+          <tr>
+            <td>Subtotal</td>
+            <td class="num" id="ag-subtotal"></td>
+          </tr>
+          <tr id="ag-discount-row" class="hidden">
+            <td>Discount (<span id="ag-discount-label"></span>)</td>
+            <td class="num" id="ag-discount"></td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>Total</strong></td>
+            <td class="num"><strong id="ag-total"></strong></td>
+          </tr>
+        </table>
+      </div>
 
-    <!-- Deposit -->
-    <div class="section">
-      <div class="section-title">Deposit</div>
-      <table class="detail-table">
-        <tr><td class="label">Deposit Type</td><td id="ag-deposit-type"></td></tr>
-        <tr id="ag-deposit-amount-row"><td class="label">Amount</td><td id="ag-deposit-amount"></td></tr>
-        <tr id="ag-deposit-note-row"><td class="label">Note</td><td id="ag-deposit-note"></td></tr>
-      </table>
+      <div class="section">
+        <div class="section-title">Deposit</div>
+        <table class="detail-table">
+          <tr><td class="label">Type</td><td id="ag-deposit-type"></td></tr>
+          <tr id="ag-deposit-amount-row"><td class="label">Amount</td><td id="ag-deposit-amount"></td></tr>
+          <tr id="ag-deposit-note-row"><td class="label">Note</td><td id="ag-deposit-note"></td></tr>
+        </table>
+      </div>
     </div>
 
     <!-- Terms and conditions -->
