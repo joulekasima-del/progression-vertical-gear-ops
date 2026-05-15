@@ -1,17 +1,3 @@
-<!-- 
-  Printable Outdoor Rental Agreement
-  
-  This page renders a print-friendly rental agreement.
-  It is opened after an outdoor rental check-out is submitted.
-  
-  The page displays:
-    - Filled-in rental details (customer, items, pricing)
-    - Agreement/disclaimer text
-    - Signature lines for customer and staff
-  
-  Staff print this page for customer signature.
-  Rental data is passed via URL parameters or localStorage.
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,10 +7,149 @@
   <link rel="stylesheet" href="rental-agreement.css" />
 </head>
 <body>
-  <h1>Progression Vertical Climbing Gym</h1>
-  <h2>Equipment Rental Agreement</h2>
-  <!-- Rental details and agreement text will go here -->
 
+  <!-- Loading state -->
+  <div id="loading" class="loading-screen">
+    <p>Loading rental agreement…</p>
+  </div>
+
+  <!-- Error state -->
+  <div id="error-screen" class="error-screen hidden">
+    <p id="error-message">Could not load rental data.</p>
+    <button onclick="window.close()">Close</button>
+  </div>
+
+  <!-- Agreement content (hidden until data loads) -->
+  <div id="agreement" class="hidden">
+
+    <!-- Header -->
+    <div class="agreement-header">
+      <h1>Progression Vertical Climbing Gym</h1>
+      <h2>Equipment Rental Agreement</h2>
+    </div>
+
+    <!-- Agreement ID and date -->
+    <div class="agreement-meta">
+      <span>Agreement ID: <strong id="ag-id"></strong></span>
+      <span>Date: <strong id="ag-date"></strong></span>
+    </div>
+
+    <!-- Customer details -->
+    <div class="section">
+      <div class="section-title">Customer Details</div>
+      <table class="detail-table">
+        <tr><td class="label">Name</td><td id="ag-customer-name"></td></tr>
+        <tr><td class="label">Email</td><td id="ag-customer-email"></td></tr>
+        <tr><td class="label">Phone</td><td id="ag-customer-phone"></td></tr>
+      </table>
+    </div>
+
+    <!-- Rental period -->
+    <div class="section">
+      <div class="section-title">Rental Period</div>
+      <table class="detail-table">
+        <tr><td class="label">Check-Out Date</td><td id="ag-checkout-date"></td></tr>
+        <tr><td class="label">Planned Return</td><td id="ag-return-date"></td></tr>
+        <tr><td class="label">Rental Days</td><td id="ag-rental-days"></td></tr>
+      </table>
+    </div>
+
+    <!-- Rental items -->
+    <div class="section">
+      <div class="section-title">Equipment Rented</div>
+      <table class="item-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Size</th>
+            <th class="num">Qty</th>
+            <th class="num">Rate/Day</th>
+            <th class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody id="ag-items">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pricing -->
+    <div class="section pricing-section">
+      <table class="pricing-table">
+        <tr>
+          <td>Subtotal</td>
+          <td class="num" id="ag-subtotal"></td>
+        </tr>
+        <tr id="ag-discount-row" class="hidden">
+          <td>Discount (<span id="ag-discount-label"></span>)</td>
+          <td class="num" id="ag-discount"></td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>Total</strong></td>
+          <td class="num"><strong id="ag-total"></strong></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Deposit -->
+    <div class="section">
+      <div class="section-title">Deposit</div>
+      <table class="detail-table">
+        <tr><td class="label">Deposit Type</td><td id="ag-deposit-type"></td></tr>
+        <tr id="ag-deposit-amount-row"><td class="label">Amount</td><td id="ag-deposit-amount"></td></tr>
+        <tr id="ag-deposit-note-row"><td class="label">Note</td><td id="ag-deposit-note"></td></tr>
+      </table>
+    </div>
+
+    <!-- Terms and conditions -->
+    <div class="section terms">
+      <div class="section-title">Terms & Conditions</div>
+      <ol>
+        <li>The renter agrees to inspect all equipment before use and accepts it in good working condition.</li>
+        <li>The renter is responsible for the care and safekeeping of all rented equipment.</li>
+        <li>Equipment must be returned by the planned return date and time. Late returns will incur an additional daily charge at the standard rental rate.</li>
+        <li>The renter is liable for any damage to, loss of, or failure to return equipment. Repair or replacement costs will be charged accordingly.</li>
+        <li>Equipment must be returned in clean condition. A cleaning fee may be applied for excessively dirty equipment.</li>
+        <li>The deposit will be refunded upon return of all equipment in satisfactory condition. Deductions may be made for damage, loss, late return, or cleaning.</li>
+        <li>Progression Vertical Climbing Gym is not liable for injuries resulting from the use of rented equipment. The renter assumes all risks associated with climbing and outdoor activities.</li>
+        <li>The renter confirms they are competent to use the equipment safely or will seek proper instruction.</li>
+      </ol>
+    </div>
+
+    <!-- Signatures -->
+    <div class="section signatures">
+      <div class="sig-row">
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Customer Signature</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Date</div>
+        </div>
+      </div>
+      <div class="sig-row">
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Staff Name: <span id="ag-staff-name"></span></div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-label">Staff Signature</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Print button (hidden when printing) -->
+    <div class="no-print print-controls">
+      <button onclick="window.print()" class="print-btn">🖨 Print Agreement</button>
+      <button onclick="window.close()" class="close-btn">Close</button>
+    </div>
+
+  </div>
+
+  <script src="../shared/config.js"></script>
+  <script src="../shared/api.js"></script>
   <script src="rental-agreement.js"></script>
 </body>
 </html>
