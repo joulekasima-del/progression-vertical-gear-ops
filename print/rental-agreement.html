@@ -1,176 +1,283 @@
+<!--
+  Gear Check-Out & Return System
+  Progression Vertical Operations System
+
+  Staff use this app for:
+    1. Course Gear Check-Out
+    2. Outdoor Rental Check-Out (future)
+    3. Pending Gear Return Tasks (future)
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rental Agreement — Progression Vertical</title>
-  <link rel="stylesheet" href="rental-agreement.css" />
+  <title>Gear Check-Out & Return — Progression Vertical</title>
+  <link rel="stylesheet" href="../shared/styles.css" />
+  <link rel="stylesheet" href="checkout-return.css" />
 </head>
 <body>
 
-  <!-- Loading state -->
-  <div id="loading" class="loading-screen">
-    <p>Loading rental agreement…</p>
+  <!-- Page header -->
+  <div class="page-header">
+    <a href="../index.html" class="back-link" title="Home">←</a>
+    <div>
+      <h1>Gear Check-Out & Return</h1>
+      <div class="subtitle">ระบบเบิก-คืนอุปกรณ์</div>
+    </div>
   </div>
 
-  <!-- Error state -->
-  <div id="error-screen" class="error-screen hidden">
-    <p id="error-message">Could not load rental data.</p>
-    <button onclick="window.close()">Close</button>
-  </div>
+  <!-- Step 1: Main menu -->
+  <section id="step-menu">
+    <button class="menu-btn" id="btn-course-checkout">
+      <span class="menu-icon">📋</span>
+      <span class="menu-label">Course Gear Check-Out</span>
+    </button>
+    <button class="menu-btn" id="btn-outdoor-rental">
+      <span class="menu-icon">🏔</span>
+      <span class="menu-label">Outdoor Rental Check-Out</span>
+    </button>
+    <button class="menu-btn" id="btn-pending-returns" disabled>
+      <span class="menu-icon">↩</span>
+      <span class="menu-label">Pending Gear Returns</span>
+      <span class="menu-coming">Coming soon</span>
+    </button>
+  </section>
 
-  <!-- Agreement content (hidden until data loads) -->
-  <div id="agreement" class="hidden">
+  <!-- Step 2: Course Gear Check-Out form -->
+  <section id="step-course-checkout" class="hidden">
 
-    <!-- Header -->
-    <div class="agreement-header">
-      <h1>Progression Vertical Climbing Gym</h1>
-      <h2>Equipment Rental Agreement</h2>
-    </div>
+    <!-- Back to menu -->
+    <button id="back-to-menu" class="btn-back">← Back to menu</button>
 
-    <!-- Agreement ID and date -->
-    <div class="agreement-meta">
-      <span>Agreement ID: <strong id="ag-id"></strong></span>
-      <span>Date: <strong id="ag-date"></strong></span>
-    </div>
+    <h2>Course Gear Check-Out</h2>
 
-    <!-- Customer details + Rental period (two columns) -->
-    <div class="two-col">
-      <div class="section">
-        <div class="section-title">Customer Details</div>
-        <table class="detail-table">
-          <tr><td class="label">Name</td><td id="ag-customer-name"></td></tr>
-          <tr><td class="label">Email</td><td id="ag-customer-email"></td></tr>
-          <tr><td class="label">Phone</td><td id="ag-customer-phone"></td></tr>
-        </table>
+    <!-- Staff and course info -->
+    <div class="card form-card">
+      <div class="form-group">
+        <label for="guide-name">Guide / Staff Name</label>
+        <input type="text" id="guide-name" placeholder="Enter your name" autocomplete="off" />
       </div>
-
-      <div class="section">
-        <div class="section-title">Rental Period</div>
-        <table class="detail-table">
-          <tr><td class="label">Check-Out</td><td id="ag-checkout-date"></td></tr>
-          <tr><td class="label">Return</td><td id="ag-return-date"></td></tr>
-          <tr><td class="label">Days</td><td id="ag-rental-days"></td></tr>
-        </table>
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="checkout-date">Date</label>
+          <input type="date" id="checkout-date" />
+        </div>
+        <div class="form-group">
+          <label for="course-time">Course Time</label>
+          <select id="course-time">
+            <option value="Full-Day">Full-Day</option>
+            <option value="AM-Half-Day">AM-Half-Day</option>
+            <option value="PM-Half-Day">PM-Half-Day</option>
+          </select>
+        </div>
       </div>
-    </div>
-
-    <!-- Rental items -->
-    <div class="section">
-      <div class="section-title">Equipment Rented</div>
-      <table class="item-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Size</th>
-            <th class="num">Qty</th>
-            <th class="num">Rate/Day</th>
-            <th class="num">Total</th>
-          </tr>
-        </thead>
-        <tbody id="ag-items">
-          <!-- Filled by JS -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Deposit (left) + Pricing (right) -->
-    <div class="two-col">
-      <div class="section">
-        <div class="section-title">Deposit</div>
-        <table class="detail-table">
-          <tr><td class="label">Type</td><td id="ag-deposit-type"></td></tr>
-          <tr id="ag-deposit-amount-row"><td class="label">Amount</td><td id="ag-deposit-amount"></td></tr>
-          <tr id="ag-deposit-note-row"><td class="label">Note</td><td id="ag-deposit-note"></td></tr>
-        </table>
-      </div>
-
-      <div class="section pricing-section">
-        <table class="pricing-table">
-          <tr>
-            <td>Subtotal</td>
-            <td class="num" id="ag-subtotal"></td>
-          </tr>
-          <tr id="ag-discount-row" class="hidden">
-            <td>Discount (<span id="ag-discount-label"></span>)</td>
-            <td class="num" id="ag-discount"></td>
-          </tr>
-          <tr class="total-row">
-            <td><strong>Total</strong></td>
-            <td class="num"><strong id="ag-total"></strong></td>
-          </tr>
-        </table>
+      <div class="form-group">
+        <label for="course-select">Select Course</label>
+        <select id="course-select">
+          <option value="">— Choose a course —</option>
+        </select>
       </div>
     </div>
 
-    <!-- Terms and conditions -->
-    <div class="section terms">
-      <div class="section-title">Terms & Conditions</div>
-      <ol>
-        <li>The renter agrees to inspect all equipment before use and accepts it in good working condition.</li>
-        <li>The renter is responsible for the care and safekeeping of all rented equipment.</li>
-        <li>Equipment must be returned by the planned return date and time. Late returns will incur an additional daily charge at the standard rental rate.</li>
-        <li>The renter is liable for any damage to, loss of, or failure to return equipment. Repair or replacement costs will be charged accordingly.</li>
-        <li>Equipment must be returned in clean condition. A cleaning fee may be applied for excessively dirty equipment.</li>
-        <li>The deposit will be refunded upon return of all equipment in satisfactory condition. Deductions may be made for damage, loss, late return, or cleaning.</li>
-        <li>To the extent permitted by law, Progression Vertical Climbing Gym is not liable for injuries resulting from the renter's use or misuse of rented equipment. The renter assumes all risks associated with climbing and outdoor activities.</li>
-        <li>The renter confirms they are at least 18 years old and competent to use the rented equipment safely, or will seek proper instruction.</li>
-      </ol>
+    <!-- Gear list renders here after course is selected -->
+    <div id="course-gear-container">
+      <!-- Filled by checkout-return.js -->
     </div>
 
-    <!-- Acceptance + Signatures -->
-    <div class="section signatures">
-      <div class="acceptance">By signing below, I confirm that I have read, understood, and agree to the rental terms and conditions above.</div>
+    <!-- Submit section (hidden until gear is loaded) -->
+    <div id="checkout-submit-section" class="hidden">
+      <div id="checkout-validation"></div>
+      <button id="checkout-submit-btn" class="btn btn-primary btn-full" disabled>
+        Check Out Gear
+      </button>
+    </div>
 
-      <div class="sig-group-label">Customer</div>
-      <div class="sig-row-3col">
-        <div class="sig-block">
-          <div class="sig-line"></div>
-          <div class="sig-label">Printed Full Name</div>
-        </div>
-        <div class="sig-block">
-          <div class="sig-line"></div>
-          <div class="sig-label">Signature</div>
-        </div>
-        <div class="sig-block sig-narrow">
-          <div class="sig-line"></div>
-          <div class="sig-label">Date</div>
-        </div>
-      </div>
+  </section>
 
-      <div class="sig-group-label">Progression Staff / Witness</div>
-      <div class="sig-row-2col">
-        <div class="sig-block">
-          <div class="sig-line"></div>
-          <div class="sig-label">Staff Full Name</div>
-        </div>
-        <div class="sig-block">
-          <div class="sig-line"><span class="sig-prefill" id="ag-staff-name"></span></div>
-          <div class="sig-label">Staff Nickname</div>
-        </div>
+  <!-- Step 3: Success screen -->
+  <section id="step-checkout-success" class="hidden">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>Gear Checked Out</h2>
+      <p id="checkout-success-details"></p>
+      <button id="new-checkout-btn" class="btn btn-primary btn-full mt-16">
+        New Check-Out
+      </button>
+    </div>
+  </section>
+
+  <!-- Step 4: Outdoor Rental Check-Out -->
+  <section id="step-outdoor-rental" class="hidden">
+
+    <button id="rental-back-to-menu" class="btn-back">← Back to menu</button>
+
+    <h2>Outdoor Rental Check-Out</h2>
+
+    <!-- Customer info -->
+    <div class="card form-card">
+      <div class="form-section-label">Customer Details</div>
+      <div class="form-group">
+        <label for="rental-customer-name">Customer Name <span class="required">*</span></label>
+        <input type="text" id="rental-customer-name" placeholder="Full name" autocomplete="off" />
       </div>
-      <div class="sig-row-2col">
-        <div class="sig-block">
-          <div class="sig-line"></div>
-          <div class="sig-label">Signature / Initial</div>
-        </div>
-        <div class="sig-block sig-narrow">
-          <div class="sig-line"></div>
-          <div class="sig-label">Date / Time</div>
-        </div>
+      <div class="form-group">
+        <label for="rental-customer-email">Email</label>
+        <input type="email" id="rental-customer-email" placeholder="email@example.com" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="rental-customer-phone">Phone <span class="required">*</span></label>
+        <input type="tel" id="rental-customer-phone" placeholder="Phone number" autocomplete="off" />
       </div>
     </div>
 
-    <!-- Print button (hidden when printing) -->
-    <div class="no-print print-controls">
-      <button onclick="window.print()" class="print-btn">🖨 Print Agreement</button>
-      <button onclick="window.close()" class="close-btn">Close</button>
+    <!-- Rental dates -->
+    <div class="card form-card">
+      <div class="form-section-label">Rental Dates</div>
+      <div class="form-group">
+        <label for="rental-checkout-date">Check-Out Date</label>
+        <input type="date" id="rental-checkout-date" />
+      </div>
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="rental-return-date">Planned Return Date <span class="required">*</span></label>
+          <input type="date" id="rental-return-date" />
+        </div>
+        <div class="form-group">
+          <label for="rental-return-time">Return Time</label>
+          <select id="rental-return-time">
+            <option value="Before 10:00">Before 10:00</option>
+            <option value="10:00 - 12:00">10:00 - 12:00</option>
+            <option value="12:00 - 14:00">12:00 - 14:00</option>
+            <option value="14:00 - 16:00">14:00 - 16:00</option>
+            <option value="16:00 - 18:00" selected>16:00 - 18:00</option>
+            <option value="After 18:00">After 18:00</option>
+          </select>
+        </div>
+      </div>
+      <div id="rental-date-warning" class="field-warning hidden"></div>
     </div>
 
-  </div>
+    <!-- Staff and deposit -->
+    <div class="card form-card">
+      <div class="form-section-label">Staff & Deposit</div>
+      <div class="form-group">
+        <label for="rental-staff-name">Check-Out Staff Name <span class="required">*</span></label>
+        <input type="text" id="rental-staff-name" placeholder="Your name" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="rental-deposit-type">Deposit Type <span class="required">*</span></label>
+        <select id="rental-deposit-type">
+          <option value="">— Select deposit type —</option>
+          <option value="Cash">Cash (10,000 THB)</option>
+          <option value="Passport">Passport held</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div id="deposit-cash-field" class="form-group hidden">
+        <label for="rental-deposit-amount">Deposit Amount (THB) <span class="required">*</span></label>
+        <input type="number" id="rental-deposit-amount" value="10000" min="0" inputmode="numeric" />
+      </div>
+      <div id="deposit-note-field" class="form-group hidden">
+        <label for="rental-deposit-note">Deposit Note</label>
+        <input type="text" id="rental-deposit-note" placeholder="e.g., Passport country, other details" autocomplete="off" />
+      </div>
+    </div>
 
+    <!-- Rental item list renders here -->
+    <div id="rental-items-container">
+      <!-- Filled by checkout-return.js -->
+    </div>
+
+    <!-- Discount section -->
+    <div id="rental-discount-section" class="card form-card hidden">
+      <div class="form-section-label">Discount</div>
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="rental-discount-type">Discount Type</label>
+          <select id="rental-discount-type">
+            <option value="None">None</option>
+            <option value="Fixed">Fixed Amount (THB)</option>
+            <option value="Percent">Percentage (%)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="rental-discount-value">Value</label>
+          <input type="number" id="rental-discount-value" value="0" min="0" inputmode="numeric" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing summary -->
+    <div id="rental-pricing-section" class="card hidden">
+      <div class="pricing-row">
+        <span>Rental Days</span>
+        <span id="pricing-days">0</span>
+      </div>
+      <div class="pricing-row">
+        <span>Subtotal</span>
+        <span id="pricing-subtotal">฿0</span>
+      </div>
+      <div class="pricing-row pricing-discount hidden" id="pricing-discount-row">
+        <span>Discount</span>
+        <span id="pricing-discount">-฿0</span>
+      </div>
+      <div class="pricing-row pricing-total">
+        <span>Total</span>
+        <span id="pricing-total">฿0</span>
+      </div>
+    </div>
+
+    <!-- Rental validation and submit -->
+    <div id="rental-submit-section" class="hidden">
+      <div id="rental-validation"></div>
+      <button id="rental-submit-btn" class="btn btn-primary btn-full" disabled>
+        Check Out Rental Gear
+      </button>
+    </div>
+
+  </section>
+
+  <!-- Step 5: Rental Success screen -->
+  <section id="step-rental-success" class="hidden">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>Rental Checked Out</h2>
+      <p id="rental-success-details"></p>
+      <button id="print-agreement-btn" class="btn btn-accent btn-full mt-16">
+        🖨 Print Rental Agreement
+      </button>
+
+      <!-- Signature confirmation -->
+      <div class="confirm-section mt-16">
+        <div class="confirm-row" id="confirm-printed-row">
+          <label>
+            <input type="checkbox" id="confirm-printed" />
+            Agreement printed
+          </label>
+          <span id="confirm-printed-status" class="confirm-status"></span>
+        </div>
+        <div class="confirm-row" id="confirm-signed-row">
+          <label>
+            <input type="checkbox" id="confirm-signed" disabled />
+            Customer signature collected
+          </label>
+          <span id="confirm-signed-status" class="confirm-status"></span>
+        </div>
+        <div id="confirm-warning" class="confirm-warning hidden">
+          ⚠ Remember to print and collect the customer's signature before they leave.
+        </div>
+      </div>
+
+      <button id="new-rental-btn" class="btn btn-primary btn-full mt-16">
+        New Check-Out
+      </button>
+    </div>
+  </section>
+
+  <!-- Scripts -->
   <script src="../shared/config.js"></script>
   <script src="../shared/api.js"></script>
-  <script src="rental-agreement.js"></script>
+  <script src="checkout-return.js"></script>
 </body>
 </html>
