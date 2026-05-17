@@ -247,7 +247,29 @@
       <button id="print-agreement-btn" class="btn btn-accent btn-full mt-16">
         🖨 Print Rental Agreement
       </button>
-      <button id="new-rental-btn" class="btn btn-primary btn-full mt-8">
+
+      <!-- Signature confirmation -->
+      <div class="confirm-section mt-16">
+        <div class="confirm-row" id="confirm-printed-row">
+          <label>
+            <input type="checkbox" id="confirm-printed" />
+            Agreement printed
+          </label>
+          <span id="confirm-printed-status" class="confirm-status"></span>
+        </div>
+        <div class="confirm-row" id="confirm-signed-row">
+          <label>
+            <input type="checkbox" id="confirm-signed" disabled />
+            Customer signature collected
+          </label>
+          <span id="confirm-signed-status" class="confirm-status"></span>
+        </div>
+        <div id="confirm-warning" class="confirm-warning hidden">
+          ⚠ Remember to print and collect the customer's signature before they leave.
+        </div>
+      </div>
+
+      <button id="new-rental-btn" class="btn btn-primary btn-full mt-16">
         New Check-Out
       </button>
     </div>
