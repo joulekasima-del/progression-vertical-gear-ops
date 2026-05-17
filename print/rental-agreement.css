@@ -1,690 +1,354 @@
 /*
- * ============================================================
- * checkout-return.css
- * Styles specific to the Gear Check-Out & Return app.
- * Shared styles are in ../shared/styles.css
- * ============================================================
+ * rental-agreement.css
+ * Print-friendly styles for the Outdoor Rental Agreement.
+ * Optimized for A4 printing.
  */
 
-
-/* --- Main menu buttons --- */
-.menu-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 16px;
-  margin-bottom: 10px;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  text-align: left;
+/* --- Base --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.menu-btn:hover:not(:disabled) {
-  border-color: var(--primary);
-  background: #f0f7f2;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  color: #222;
+  line-height: 1.45;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  font-size: 13px;
 }
 
-.menu-btn:active:not(:disabled) {
-  transform: scale(0.98);
-}
+.hidden { display: none !important; }
 
-.menu-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
-.menu-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.menu-label {
+/* --- Loading / Error --- */
+.loading-screen,
+.error-screen {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
   font-size: 1rem;
-  font-weight: 600;
-  color: var(--text);
-  flex: 1;
 }
 
-.menu-coming {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-light);
-  background: #f0ece7;
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-
-/* --- Back button --- */
-.btn-back {
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px 0;
-  margin-bottom: 12px;
-}
-
-.btn-back:hover {
-  text-decoration: underline;
-}
-
-
-/* --- Form group --- */
-.form-group {
+.error-screen p {
+  color: #c0392b;
   margin-bottom: 16px;
 }
 
-.form-group label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-light);
-  margin-bottom: 6px;
-}
-
-.form-group select {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 1rem;
-  color: var(--text);
-  background: var(--surface);
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B6B' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-}
-
-.form-group select:disabled {
-  background-color: #f5f5f5;
-  color: var(--text-light);
+.error-screen button {
+  padding: 8px 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
 }
 
 
-/* --- Gear template header --- */
-.gear-template-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background: var(--primary);
-  color: #fff;
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-
-/* --- Gear card (one per template item) --- */
-.gear-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow);
-}
-
-.gear-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* --- Agreement header --- */
+.agreement-header {
+  text-align: center;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid #222;
 }
 
-.gear-card-name {
+.agreement-header h1 {
+  font-size: 1.3rem;
   font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.agreement-header h2 {
   font-size: 1rem;
-  color: var(--text);
+  font-weight: 600;
+  color: #555;
 }
 
 
-/* --- Suggested / Taking row --- */
-.gear-card-row {
+/* --- Agreement meta (ID + date) --- */
+.agreement-meta {
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
+  padding: 6px 0;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #ddd;
+}
+
+
+/* --- Two-column layout --- */
+.two-col {
+  display: flex;
+  gap: 20px;
   margin-bottom: 10px;
 }
 
-.gear-card-field {
+.two-col > .section {
   flex: 1;
-  text-align: center;
-}
-
-.gear-card-field label {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-light);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 4px;
-}
-
-.suggested-value {
-  display: inline-block;
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--text);
-  background: #f0ece7;
-  padding: 8px 16px;
-  border-radius: 6px;
-  min-width: 60px;
-}
-
-.gear-card .qty-input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--text);
-  background: var(--surface);
-  -moz-appearance: textfield;
-}
-
-.gear-card .qty-input::-webkit-outer-spin-button,
-.gear-card .qty-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.gear-card .qty-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
-}
-
-.gear-card .notes-input {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: var(--text);
-  background: var(--surface);
-}
-
-.gear-card .notes-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
-}
-
-.gear-card .notes-input::placeholder {
-  color: #bbb;
-}
-
-
-/* --- Form card --- */
-.form-card {
-  margin-bottom: 16px;
-}
-
-.form-card .form-group {
-  margin-bottom: 12px;
-}
-
-.form-card .form-group:last-child {
   margin-bottom: 0;
 }
 
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="tel"],
-.form-group input[type="number"],
-.form-group input[type="date"],
-.form-group input[type="time"] {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 1rem;
-  color: var(--text);
-  background: var(--surface);
-  -moz-appearance: textfield;
+
+/* --- Sections --- */
+.section {
+  margin-bottom: 10px;
 }
 
-/* Hide number spinners for consistency */
-.form-group input[type="number"]::-webkit-outer-spin-button,
-.form-group input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
-}
-
-/* Two-column row for date + time */
-.form-row-2col {
-  display: flex;
-  gap: 12px;
-}
-
-.form-row-2col .form-group {
-  flex: 1;
-}
-
-
-/* --- Checkout validation & submit --- */
-#checkout-submit-section {
-  margin-top: 8px;
-}
-
-#checkout-validation {
-  margin-bottom: 12px;
-}
-
-#checkout-submit-btn {
-  margin-bottom: 24px;
-}
-
-#checkout-submit-btn:disabled {
-  background: var(--border);
-  color: var(--text-light);
-  cursor: not-allowed;
-}
-
-
-/* --- Success card (reused pattern) --- */
-.success-card {
-  background: var(--surface);
-  border: 2px solid var(--success);
-  border-radius: var(--radius);
-  padding: 32px 20px;
-  text-align: center;
-  box-shadow: var(--shadow);
-}
-
-.success-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 16px;
-  background: #e8f5e9;
-  color: var(--success);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.success-card h2 {
-  color: var(--success);
-  margin-bottom: 8px;
-}
-
-.success-card p {
-  color: var(--text-light);
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-
-/* --- Rental item cards --- */
-.rental-item-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  box-shadow: var(--shadow);
-}
-
-.rental-item-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rental-item-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.rental-item-name {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--text);
-}
-
-.rental-size-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--accent);
-  background: #fef5e7;
-  padding: 2px 6px;
-  border-radius: 8px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.rental-item-price {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--primary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-
-/* --- Rental item qty input --- */
-.rental-item-qty {
-  flex-shrink: 0;
-}
-
-.rental-item-qty .qty-input {
-  width: 56px;
-  padding: 6px 4px;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--text);
-  background: var(--surface);
-  -moz-appearance: textfield;
-}
-
-.rental-item-qty .qty-input::-webkit-outer-spin-button,
-.rental-item-qty .qty-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.rental-item-qty .qty-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
-}
-
-
-/* --- Rental total qty (for size-required items) --- */
-.rental-item-total {
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-light);
-  text-align: center;
-  min-width: 56px;
-}
-
-.rental-total-value {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.rental-total-value.has-qty {
-  color: var(--primary);
-}
-
-
-/* --- Size breakdown section --- */
-.size-breakdown {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-
-.size-entry {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.size-entry-size {
-  flex: 1;
-  padding: 8px 10px;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: var(--text);
-  background: var(--surface);
-}
-
-.size-entry-size:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
-}
-
-.size-entry-qty {
-  width: 60px;
-  padding: 8px 4px;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--text);
-  background: var(--surface);
-  -moz-appearance: textfield;
-}
-
-.size-entry-qty::-webkit-outer-spin-button,
-.size-entry-qty::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.size-entry-qty:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(43, 93, 58, 0.15);
-}
-
-.size-entry-remove {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: #fdecea;
-  color: var(--danger);
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.size-entry-remove:hover {
-  background: var(--danger);
-  color: #fff;
-}
-
-.btn-add-size {
-  display: block;
-  width: 100%;
-  padding: 8px;
-  border: 2px dashed var(--border);
-  border-radius: 6px;
-  background: none;
-  color: var(--primary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.btn-add-size:hover {
-  border-color: var(--primary);
-  background: #f0f7f2;
-}
-
-
-/* --- Form section label --- */
-.form-section-label {
+.section-title {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--text-light);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.05em;
+  color: #555;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #ddd;
 }
 
 
-/* --- Required asterisk --- */
-.required {
-  color: var(--danger);
+/* --- Detail table (key-value pairs) --- */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
+.detail-table td {
+  padding: 3px 0;
+  vertical-align: top;
+}
 
-/* --- Field warning --- */
-.field-warning {
-  padding: 6px 10px;
-  background: #fef5e7;
-  color: var(--warning);
-  border-radius: 6px;
-  font-size: 0.85rem;
+.detail-table .label {
+  width: 80px;
   font-weight: 600;
+  color: #555;
+}
+
+
+/* --- Item table --- */
+.item-table {
+  width: 100%;
+  border-collapse: collapse;
   margin-top: 4px;
 }
 
-
-/* --- Rental submit section --- */
-#rental-submit-section {
-  margin-top: 8px;
+.item-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #555;
+  padding: 6px 8px;
+  border-bottom: 2px solid #333;
 }
 
-#rental-validation {
-  margin-bottom: 12px;
+.item-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #ddd;
 }
 
-#rental-submit-btn {
-  margin-bottom: 24px;
-}
-
-#rental-submit-btn:disabled {
-  background: var(--border);
-  color: var(--text-light);
-  cursor: not-allowed;
+.item-table th.num,
+.item-table td.num {
+  text-align: right;
 }
 
 
-/* --- Pricing summary --- */
-.pricing-row {
+/* --- Pricing --- */
+.pricing-section {
+  margin-bottom: 14px;
+}
+
+.pricing-section {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  font-size: 0.95rem;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.pricing-row:last-child {
-  border-bottom: none;
+.pricing-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.pricing-row span:last-child {
-  font-weight: 600;
+.pricing-table td {
+  padding: 4px 0;
+}
+
+.pricing-table td.num {
+  text-align: right;
   font-family: "SF Mono", "Consolas", monospace;
 }
 
-.pricing-total {
-  padding: 12px 0 4px;
-  border-bottom: none;
-  border-top: 2px solid var(--text);
-  font-size: 1.1rem;
-}
-
-.pricing-total span {
-  font-weight: 700 !important;
-  color: var(--primary);
-}
-
-.pricing-discount span:last-child {
-  color: var(--danger);
+.total-row td {
+  padding-top: 6px;
+  border-top: 2px solid #333;
+  font-size: 1.05rem;
 }
 
 
-/* --- Signature confirmation section --- */
-.confirm-section {
-  text-align: left;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  background: #fafaf7;
+/* --- Terms --- */
+.terms ol {
+  padding-left: 20px;
+  font-size: 0.75rem;
+  color: #444;
+  line-height: 1.45;
 }
 
-.confirm-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
+.terms li {
+  margin-bottom: 2px;
 }
 
-.confirm-row:last-of-type {
-  border-bottom: none;
-}
 
-.confirm-row label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.confirm-row input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--success);
-  cursor: pointer;
-}
-
-.confirm-row input[type="checkbox"]:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.confirm-status {
+/* --- Acceptance statement --- */
+.acceptance {
   font-size: 0.8rem;
   font-weight: 600;
+  font-style: italic;
+  color: #333;
+  margin-bottom: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #ddd;
 }
 
-.confirm-saved {
-  color: var(--success);
-}
 
-.confirm-warning {
+/* --- Signatures --- */
+.signatures {
   margin-top: 10px;
-  padding: 8px 10px;
-  background: #fef5e7;
-  color: var(--warning);
-  border-radius: 6px;
+}
+
+.sig-group-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #555;
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.sig-row-3col {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.sig-row-2col {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.sig-block {
+  flex: 1;
+}
+
+.sig-block.sig-narrow {
+  flex: 0.6;
+}
+
+.sig-line {
+  border-bottom: 1px solid #333;
+  height: 24px;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.sig-prefill {
   font-size: 0.85rem;
+  color: #333;
+}
+
+.sig-label {
+  font-size: 0.7rem;
+  color: #555;
+  margin-top: 2px;
+}
+
+
+/* --- Print controls (hidden when printing) --- */
+.print-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.print-btn {
+  padding: 12px 28px;
+  background: #2B5D3A;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
-  text-align: center;
+  cursor: pointer;
+}
+
+.print-btn:hover {
+  background: #3A7A4F;
+}
+
+.close-btn {
+  padding: 12px 28px;
+  background: #fff;
+  color: #333;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+}
+
+
+/* --- Print media --- */
+@media print {
+  body {
+    padding: 0;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .agreement-header {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .agreement-header h1 { font-size: 1.2rem; }
+  .agreement-header h2 { font-size: 0.9rem; }
+
+  .agreement-meta { margin-bottom: 8px; padding: 4px 0; }
+
+  .section { margin-bottom: 8px; }
+  .section-title { margin-bottom: 4px; padding-bottom: 2px; font-size: 0.75rem; }
+
+  .two-col { gap: 16px; margin-bottom: 8px; }
+
+  .detail-table td { padding: 2px 0; }
+  .item-table th { padding: 4px 6px; }
+  .item-table td { padding: 3px 6px; }
+  .pricing-table td { padding: 2px 0; }
+
+  .terms ol { font-size: 0.7rem; line-height: 1.4; }
+  .terms li { margin-bottom: 1px; }
+
+  .signatures { margin-top: 8px; }
+  .sig-group-label { margin-top: 6px; margin-bottom: 2px; }
+  .sig-row-3col { margin-bottom: 6px; gap: 12px; }
+  .sig-row-2col { margin-bottom: 6px; gap: 12px; }
+  .sig-line { height: 20px; }
+  .acceptance { font-size: 0.7rem; margin-bottom: 6px; padding: 4px 0; }
+
+  .signatures {
+    page-break-inside: avoid;
+  }
 }
