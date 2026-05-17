@@ -69,6 +69,11 @@ var stepRentalSuccess     = document.getElementById("step-rental-success");
 var rentalSuccessDetails  = document.getElementById("rental-success-details");
 var newRentalBtn          = document.getElementById("new-rental-btn");
 var printAgreementBtn     = document.getElementById("print-agreement-btn");
+var confirmPrinted        = document.getElementById("confirm-printed");
+var confirmSigned         = document.getElementById("confirm-signed");
+var confirmPrintedStatus  = document.getElementById("confirm-printed-status");
+var confirmSignedStatus   = document.getElementById("confirm-signed-status");
+var confirmWarning        = document.getElementById("confirm-warning");
 
 
 // ============================================================
@@ -138,6 +143,52 @@ printAgreementBtn.addEventListener("click", function() {
     window.open("../print/rental-agreement.html?id=" + encodeURIComponent(lastRentalCheckoutId), "_blank");
   }
 });
+
+// Confirm agreement printed
+confirmPrinted.addEventListener("change", function() {
+  if (confirmPrinted.checked) {
+    updateSignatureStatus("agreement_printed", "Yes");
+    confirmPrintedStatus.textContent = "✓ Saved";
+    confirmPrintedStatus.className = "confirm-status confirm-saved";
+    // Enable signature checkbox
+    confirmSigned.disabled = false;
+    confirmWarning.classList.add("hidden");
+  } else {
+    updateSignatureStatus("agreement_printed", "No");
+    confirmPrintedStatus.textContent = "";
+    // Disable and uncheck signature
+    confirmSigned.checked = false;
+    confirmSigned.disabled = true;
+    confirmSignedStatus.textContent = "";
+    updateSignatureStatus("customer_signature_collected", "No");
+    confirmWarning.classList.remove("hidden");
+  }
+});
+
+// Confirm signature collected
+confirmSigned.addEventListener("change", function() {
+  if (confirmSigned.checked) {
+    updateSignatureStatus("customer_signature_collected", "Yes");
+    confirmSignedStatus.textContent = "✓ Saved";
+    confirmSignedStatus.className = "confirm-status confirm-saved";
+    confirmWarning.classList.add("hidden");
+  } else {
+    updateSignatureStatus("customer_signature_collected", "No");
+    confirmSignedStatus.textContent = "";
+    confirmWarning.classList.remove("hidden");
+  }
+});
+
+// Update a single field on all CHECKOUT_LOG rows for this checkout
+async function updateSignatureStatus(field, value) {
+  if (!lastRentalCheckoutId) return;
+
+  await callAPI("updateCheckoutField", {
+    checkoutId: lastRentalCheckoutId,
+    field: field,
+    value: value
+  }, "POST");
+}
 
 // Submit outdoor rental
 rentalSubmitBtn.addEventListener("click", function() {
@@ -1044,6 +1095,14 @@ async function submitOutdoorRental() {
   lastRentalCheckoutId = result.checkoutId;
   stepOutdoorRental.classList.add("hidden");
   stepRentalSuccess.classList.remove("hidden");
+
+  // Reset confirmation checkboxes
+  confirmPrinted.checked = false;
+  confirmSigned.checked = false;
+  confirmSigned.disabled = true;
+  confirmPrintedStatus.textContent = "";
+  confirmSignedStatus.textContent = "";
+  confirmWarning.classList.remove("hidden");
 
   rentalSuccessDetails.textContent =
     payload.customer_name + " — " + result.rowCount + " items, " +
