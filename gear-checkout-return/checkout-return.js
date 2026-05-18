@@ -74,6 +74,14 @@ var confirmSigned         = document.getElementById("confirm-signed");
 var confirmPrintedStatus  = document.getElementById("confirm-printed-status");
 var confirmSignedStatus   = document.getElementById("confirm-signed-status");
 var confirmWarning        = document.getElementById("confirm-warning");
+var btnPendingReturns     = document.getElementById("btn-pending-returns");
+var stepPendingReturns    = document.getElementById("step-pending-returns");
+var returnsBackToMenu     = document.getElementById("returns-back-to-menu");
+var pendingReturnsContainer = document.getElementById("pending-returns-container");
+var stepReturnDetail      = document.getElementById("step-return-detail");
+var detailBackToList      = document.getElementById("detail-back-to-list");
+var returnDetailHeader    = document.getElementById("return-detail-header");
+var returnDetailItems     = document.getElementById("return-detail-items");
 
 
 // ============================================================
@@ -84,6 +92,7 @@ var currentCourseGear = [];  // Gear template items for selected course
 var selectedCourseName = ""; // Name of selected course
 var currentRentalItems = []; // Rental items from OUTDOOR_RENTAL_MASTER
 var lastRentalCheckoutId = ""; // Last submitted rental checkout_id
+var pendingReturnGroups = []; // Grouped pending return tasks
 
 
 // ============================================================
@@ -193,6 +202,25 @@ async function updateSignatureStatus(field, value) {
 // Submit outdoor rental
 rentalSubmitBtn.addEventListener("click", function() {
   submitOutdoorRental();
+});
+
+// Open Pending Gear Returns
+btnPendingReturns.addEventListener("click", function() {
+  stepMenu.classList.add("hidden");
+  stepPendingReturns.classList.remove("hidden");
+  loadPendingReturns();
+});
+
+// Back to menu from pending returns
+returnsBackToMenu.addEventListener("click", function() {
+  stepPendingReturns.classList.add("hidden");
+  stepMenu.classList.remove("hidden");
+});
+
+// Back to list from detail
+detailBackToList.addEventListener("click", function() {
+  stepReturnDetail.classList.add("hidden");
+  stepPendingReturns.classList.remove("hidden");
 });
 
 
@@ -1109,6 +1137,173 @@ async function submitOutdoorRental() {
     rentalDays + " day" + (rentalDays > 1 ? "s" : "") +
     ", Total ฿" + total.toLocaleString() +
     ". Status: Pending Return. (ID: " + result.checkoutId + ")";
+
+  window.scrollTo(0, 0);
+}
+
+
+// ============================================================
+// loadPendingReturns — loads open checkout tasks from API
+// ============================================================
+
+async function loadPendingReturns() {
+  pendingReturnsContainer.innerHTML =
+    '<div class="status-message loading">Loading pending returns…</div>';
+
+  var result = await callAPI("loadPendingReturns", {});
+
+  if (!result.success) {
+    pendingReturnsContainer.innerHTML =
+      '<div class="status-message error">Error: ' + (result.error || "Unknown error") + '</div>';
+    return;
+  }
+
+  if (!result.data || result.data.length === 0) {
+    pendingReturnsContainer.innerHTML =
+      '<div class="status-message empty">No pending returns. All gear is accounted for.</div>';
+    return;
+  }
+
+  pendingReturnGroups = result.data;
+  renderPendingReturns(result.data);
+}
+
+
+// ============================================================
+// renderPendingReturns — renders task cards grouped by checkout_id
+// ============================================================
+
+function renderPendingReturns(groups) {
+  var html = '<div class="gear-template-header">';
+  html += '  <span>' + groups.length + ' pending return' + (groups.length > 1 ? 's' : '') + '</span>';
+  html += '</div>';
+
+  for (var i = 0; i < groups.length; i++) {
+    var g = groups[i];
+
+    html += '<div class="return-task-card" data-index="' + i + '">';
+
+    // Type badge
+    var typeBadge = g.checkout_type === "Course"
+      ? '<span class="type-badge type-course">Course</span>'
+      : '<span class="type-badge type-rental">Rental</span>';
+
+    html += '  <div class="return-task-top">';
+    html += '    ' + typeBadge;
+    html += '    <span class="return-task-id">' + escapeHtml(g.checkout_id) + '</span>';
+    html += '  </div>';
+
+    // Main info
+    if (g.checkout_type === "Course") {
+      html += '  <div class="return-task-title">' + escapeHtml(g.course_name) + '</div>';
+      html += '  <div class="return-task-meta">';
+      html += '    <span>Guide: ' + escapeHtml(g.guide_name) + '</span>';
+      html += '    <span>' + escapeHtml(g.date) + ' · ' + escapeHtml(g.course_time) + '</span>';
+      html += '  </div>';
+    } else {
+      html += '  <div class="return-task-title">' + escapeHtml(g.customer_name) + '</div>';
+      html += '  <div class="return-task-meta">';
+      html += '    <span>Staff: ' + escapeHtml(g.checkout_staff_name) + '</span>';
+      html += '    <span>Return: ' + escapeHtml(g.planned_return_date) + '</span>';
+      html += '  </div>';
+
+      // Attention flags for outdoor rental
+      var flags = [];
+      if (g.agreement_printed !== "Yes") flags.push("Not printed");
+      if (g.customer_signature_collected !== "Yes") flags.push("No signature");
+      if (g.deposit_type === "Passport") flags.push("Passport held");
+
+      if (flags.length > 0) {
+        html += '  <div class="return-task-flags">';
+        for (var f = 0; f < flags.length; f++) {
+          html += '<span class="flag-badge">' + flags[f] + '</span>';
+        }
+        html += '  </div>';
+      }
+    }
+
+    // Item count
+    html += '  <div class="return-task-footer">';
+    html += '    <span>' + g.item_count + ' gear item' + (g.item_count > 1 ? 's' : '') + '</span>';
+    html += '    <span class="return-task-arrow">View →</span>';
+    html += '  </div>';
+
+    html += '</div>';
+  }
+
+  pendingReturnsContainer.innerHTML = html;
+
+  // Attach click handlers to each card
+  var cards = pendingReturnsContainer.querySelectorAll(".return-task-card");
+  cards.forEach(function(card) {
+    card.addEventListener("click", function() {
+      var idx = parseInt(card.getAttribute("data-index"));
+      openReturnDetail(idx);
+    });
+  });
+}
+
+
+// ============================================================
+// openReturnDetail — shows the gear list for a pending return
+// ============================================================
+
+function openReturnDetail(groupIndex) {
+  var g = pendingReturnGroups[groupIndex];
+  if (!g) return;
+
+  stepPendingReturns.classList.add("hidden");
+  stepReturnDetail.classList.remove("hidden");
+
+  // Header
+  var hHtml = '<div class="detail-card">';
+
+  if (g.checkout_type === "Course") {
+    hHtml += '<div class="return-task-top">';
+    hHtml += '  <span class="type-badge type-course">Course</span>';
+    hHtml += '  <span class="return-task-id">' + escapeHtml(g.checkout_id) + '</span>';
+    hHtml += '</div>';
+    hHtml += '<h2>' + escapeHtml(g.course_name) + '</h2>';
+    hHtml += '<div class="detail-meta">Guide: ' + escapeHtml(g.guide_name) + ' · ' + escapeHtml(g.date) + ' · ' + escapeHtml(g.course_time) + '</div>';
+  } else {
+    hHtml += '<div class="return-task-top">';
+    hHtml += '  <span class="type-badge type-rental">Rental</span>';
+    hHtml += '  <span class="return-task-id">' + escapeHtml(g.checkout_id) + '</span>';
+    hHtml += '</div>';
+    hHtml += '<h2>' + escapeHtml(g.customer_name) + '</h2>';
+    hHtml += '<div class="detail-meta">';
+    hHtml += '  ' + escapeHtml(g.customer_phone) + ' · Staff: ' + escapeHtml(g.checkout_staff_name);
+    hHtml += '</div>';
+    hHtml += '<div class="detail-meta">';
+    hHtml += '  Checkout: ' + escapeHtml(g.date) + ' · Return: ' + escapeHtml(g.planned_return_date);
+    if (g.planned_return_time) hHtml += ' (' + escapeHtml(g.planned_return_time) + ')';
+    hHtml += '</div>';
+    hHtml += '<div class="detail-meta">Deposit: ' + escapeHtml(g.deposit_type);
+    if (g.deposit_amount) hHtml += ' ฿' + Number(g.deposit_amount).toLocaleString();
+    hHtml += '</div>';
+  }
+
+  hHtml += '</div>';
+  returnDetailHeader.innerHTML = hHtml;
+
+  // Items table
+  var iHtml = '<div class="detail-card">';
+  iHtml += '<table class="gear-table">';
+  iHtml += '<thead><tr><th>Gear</th><th>Size</th><th>Qty</th></tr></thead>';
+  iHtml += '<tbody>';
+
+  for (var i = 0; i < g.items.length; i++) {
+    var item = g.items[i];
+    iHtml += '<tr>';
+    iHtml += '<td>' + escapeHtml(item.gear_name) + '</td>';
+    iHtml += '<td>' + escapeHtml(item.size || "—") + '</td>';
+    iHtml += '<td>' + item.taken_qty + '</td>';
+    iHtml += '</tr>';
+  }
+
+  iHtml += '</tbody></table>';
+  iHtml += '</div>';
+  returnDetailItems.innerHTML = iHtml;
 
   window.scrollTo(0, 0);
 }
