@@ -37,10 +37,9 @@
       <span class="menu-icon">🏔</span>
       <span class="menu-label">Outdoor Rental Check-Out</span>
     </button>
-    <button class="menu-btn" id="btn-pending-returns" disabled>
+    <button class="menu-btn" id="btn-pending-returns">
       <span class="menu-icon">↩</span>
       <span class="menu-label">Pending Gear Returns</span>
-      <span class="menu-coming">Coming soon</span>
     </button>
   </section>
 
@@ -273,6 +272,29 @@
         New Check-Out
       </button>
     </div>
+  </section>
+
+  <!-- Step 6: Pending Gear Returns -->
+  <section id="step-pending-returns" class="hidden">
+
+    <button id="returns-back-to-menu" class="btn-back">← Back to menu</button>
+
+    <h2>Pending Gear Returns</h2>
+
+    <div id="pending-returns-container">
+      <!-- Filled by checkout-return.js -->
+    </div>
+
+  </section>
+
+  <!-- Step 7: Return detail view -->
+  <section id="step-return-detail" class="hidden">
+
+    <button id="detail-back-to-list" class="btn-back">← Back to list</button>
+
+    <div id="return-detail-header"></div>
+    <div id="return-detail-items"></div>
+
   </section>
 
   <!-- Scripts -->
