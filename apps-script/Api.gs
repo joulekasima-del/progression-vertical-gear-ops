@@ -703,14 +703,15 @@ function loadPendingReturns() {
 
 
 // ============================================================
-// submitReturn — saves a course gear return and closes the task
+// submitReturn — saves course and outdoor rental returns
 //
 // Called by: Pending Gear Returns detail screen
 // Writes: RETURN_LOG (one row per returned gear item)
 // Updates: CHECKOUT_LOG status for every row in this checkout
 //
-// Version 1 handles Course returns. Outdoor Rental returns are
-// handled in the next build tracker step.
+// Course returns use returned quantities and issue detail.
+// Outdoor Rental returns also save charges, deposit handling,
+// actual return time, and final amount due.
 // ============================================================
 
 function submitReturn(data) {
@@ -732,11 +733,32 @@ function submitReturn(data) {
   }
 
   var checkoutType = checkoutRows[0].checkout_type || data.checkout_type || "Course";
-  if (checkoutType !== "Course") {
-    return { success: false, error: "Outdoor rental returns are not built yet." };
+  var isOutdoorRental = checkoutType === "Outdoor Rental";
+
+  if (checkoutType !== "Course" && !isOutdoorRental) {
+    return { success: false, error: "Unsupported checkout type: " + checkoutType };
+  }
+
+  if (isOutdoorRental) {
+    if (!data.return_staff_name || data.return_staff_name.trim() === "") {
+      return { success: false, error: "Missing required field: return staff name." };
+    }
+    if (!data.actual_return_date) {
+      return { success: false, error: "Missing required field: actual return date." };
+    }
+    if (!data.actual_return_time) {
+      return { success: false, error: "Missing required field: actual return time." };
+    }
+    if (!data.deposit_returned) {
+      return { success: false, error: "Missing required field: deposit returned." };
+    }
+    if (data.deposit_returned !== "Yes" && !data.deposit_return_note) {
+      return { success: false, error: "Deposit return note is required if deposit was not fully returned." };
+    }
   }
 
   var hasIssue = false;
+  var needsIssueDetail = false;
   for (var i = 0; i < data.rows.length; i++) {
     var row = data.rows[i];
     var takenQty = Number(row.taken_qty) || 0;
@@ -748,12 +770,34 @@ function submitReturn(data) {
 
     if (returnedQty !== takenQty) {
       hasIssue = true;
+      needsIssueDetail = true;
+    }
+  }
+
+  var extraDayCharge = Math.max(Number(data.extra_day_charge) || 0, 0);
+  var dirtyConditionCharge = Math.max(Number(data.dirty_condition_charge) || 0, 0);
+  var damageOrLossCharge = Math.max(Number(data.damage_or_loss_charge) || 0, 0);
+  var finalAmountDue = Math.max(Number(data.final_amount_due) || 0, 0);
+  var lateReturn = data.late_return || "No";
+
+  if (isOutdoorRental) {
+    if (lateReturn === "Yes" ||
+        extraDayCharge > 0 ||
+        dirtyConditionCharge > 0 ||
+        damageOrLossCharge > 0 ||
+        finalAmountDue > 0 ||
+        data.deposit_returned !== "Yes") {
+      hasIssue = true;
+    }
+
+    if (damageOrLossCharge > 0) {
+      needsIssueDetail = true;
     }
   }
 
   var issueDetail = data.issue_detail || "";
-  if (hasIssue && issueDetail.trim() === "") {
-    return { success: false, error: "Issue detail is required when quantities do not match." };
+  if (needsIssueDetail && issueDetail.trim() === "") {
+    return { success: false, error: "Issue detail is required for missing gear or damage/loss." };
   }
 
   var returnStatus = hasIssue ? "Completed with Issue" : "Completed";
@@ -786,16 +830,16 @@ function submitReturn(data) {
       return_status:         returnStatus,
       created_at:            timestamp,
       return_staff_name:     data.return_staff_name || "",
-      planned_return_date:   data.planned_return_date || "",
+      planned_return_date:   data.planned_return_date || checkoutRows[0].planned_return_date || "",
       actual_return_date:    data.actual_return_date || dateReturned,
       actual_return_time:    data.actual_return_time || "",
-      late_return:           "",
-      extra_day_charge:      "",
-      dirty_condition_charge: "",
-      damage_or_loss_charge: "",
-      deposit_returned:      "",
-      deposit_return_note:   "",
-      final_amount_due:      "",
+      late_return:           isOutdoorRental ? lateReturn : "",
+      extra_day_charge:      isOutdoorRental ? extraDayCharge : "",
+      dirty_condition_charge: isOutdoorRental ? dirtyConditionCharge : "",
+      damage_or_loss_charge: isOutdoorRental ? damageOrLossCharge : "",
+      deposit_returned:      isOutdoorRental ? data.deposit_returned : "",
+      deposit_return_note:   isOutdoorRental ? (data.deposit_return_note || "") : "",
+      final_amount_due:      isOutdoorRental ? finalAmountDue : "",
       return_note:           item.return_note || data.return_note || ""
     });
   }
