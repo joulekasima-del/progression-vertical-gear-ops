@@ -1,0 +1,2407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progression Vertical — Build Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    padding: 28px 18px;
+    background: #F5F3EE;
+    color: #242722;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    line-height: 1.5;
+  }
+
+  .wrap { width: min(980px, 100%); margin: 0 auto; }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-size: 24px;
+    line-height: 1.15;
+    color: #1F2E2A;
+    margin-bottom: 5px;
+  }
+
+  .subtitle {
+    color: #66706B;
+    font-size: 13px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #E5EEE9;
+    color: #246B61;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card {
+    background: #FFFFFF;
+    border: 1px solid #D7D2C8;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .stat-num {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    color: #1F2E2A;
+  }
+
+  .stat-lbl {
+    margin-top: 5px;
+    color: #66706B;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+
+  .progress-wrap {
+    height: 8px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #E1DDD4;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: #246B61;
+    transition: width .25s ease;
+  }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .note-card {
+    background: #FFFFFF;
+    border: 1px solid #D7D2C8;
+    border-left: 4px solid #246B61;
+    border-radius: 8px;
+    padding: 14px;
+    color: #4E5752;
+    font-size: 13px;
+  }
+
+  .note-card strong { color: #1F2E2A; }
+
+  .phase-label {
+    margin: 24px 0 8px;
+    color: #246B61;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 7px;
+    padding: 12px 13px;
+    background: #FFFFFF;
+    border: 1px solid #D7D2C8;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .step:hover { border-color: #99A9A2; }
+  .step.active { border-color: #246B61; background: #F0F6F3; }
+  .step.done { opacity: .66; }
+
+  .step-check {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #BEB8AD;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7B837F;
+    font-size: 11px;
+    font-weight: 800;
+    margin-top: 1px;
+  }
+
+  .step.done .step-check {
+    background: #247A4D;
+    border-color: #247A4D;
+    color: #FFFFFF;
+  }
+
+  .step-body { flex: 1; min-width: 0; }
+
+  .step-title {
+    color: #1F2E2A;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .step-sub {
+    color: #66706B;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .badge {
+    align-self: flex-start;
+    margin-top: 1px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .03em;
+    white-space: nowrap;
+  }
+
+  .badge.now { background: #FFF1DF; color: #A45A12; }
+  .badge.soon { background: #EEEAE2; color: #66706B; }
+  .badge.done { background: #E5F3EB; color: #247A4D; }
+
+  .detail {
+    margin: 3px 0 12px 36px;
+    padding: 15px;
+    background: #FFFFFF;
+    border: 1px solid #D7D2C8;
+    border-left: 4px solid #246B61;
+    border-radius: 8px;
+    color: #4E5752;
+    font-size: 13px;
+  }
+
+  .detail strong { color: #1F2E2A; }
+  .detail ul { padding-left: 18px; margin: 8px 0; }
+  .detail li { margin-bottom: 4px; }
+
+  .cmd {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #F1EFE9;
+    border: 1px solid #D7D2C8;
+    color: #1F2E2A;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: #F1EFE9;
+    border: 1px solid #D7D2C8;
+    color: #1F2E2A;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12px;
+  }
+
+  .prompt-box {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #D7D2C8;
+  }
+
+  .prompt-label {
+    margin-bottom: 6px;
+    color: #246B61;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+
+  .prompt-box pre {
+    max-height: 360px;
+    overflow: auto;
+  }
+
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  button {
+    min-height: 36px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid #D7D2C8;
+    background: #FFFFFF;
+    color: #1F2E2A;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  button.primary {
+    background: #246B61;
+    border-color: #246B61;
+    color: #FFFFFF;
+  }
+
+  button.danger {
+    background: #FFFFFF;
+    border-color: #B43A35;
+    color: #B43A35;
+  }
+
+  @media (min-width: 760px) {
+    body { padding: 36px 24px; }
+    .intro-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 560px) {
+    .page-header { display: block; }
+    .pill { margin-top: 10px; }
+    .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .detail { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="page-header">
+    <div>
+      <h1>Progression Vertical — Build Tracker</h1>
+      <p class="subtitle">A step-by-step tracker for building inspection, checkout, outdoor rental, print agreement, returns, and Slack reporting with Claude AI.</p>
+    </div>
+    <span class="pill">GitHub Pages + Google Sheets + Apps Script + Slack</span>
+  </header>
+
+  <section class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-done">0</div>
+      <div class="stat-lbl">Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-left">0</div>
+      <div class="stat-lbl">Left</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-pct">0%</div>
+      <div class="stat-lbl">Complete</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-phase">1</div>
+      <div class="stat-lbl">Phase</div>
+    </div>
+  </section>
+
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress"></div>
+  </div>
+
+  <section class="intro-grid">
+    <div class="note-card">
+      <strong>Working rule:</strong> use Claude for one feature at a time. Ask for a small change, test it, save it, then continue. Do not ask Claude to build the whole system in one response.
+    </div>
+    <div class="note-card">
+      <strong>Feature rule:</strong> every feature needs Goal, User, Inputs, Output, Data Used, Depends On, Files, Rules, Steps, Edge Cases, and Success Test before coding.
+    </div>
+  </section>
+
+  <div id="steps"></div>
+</main>
+
+<script>
+const FEATURE_TEMPLATE = `# Feature: [name]
+
+## Goal
+What should this do?
+
+## User
+Who uses it?
+
+## Inputs
+What information does it need?
+
+## Output
+What should it produce?
+
+## Data Used
+Which Google Sheets tabs does it read or write?
+
+## Depends On
+Which features, files, or tabs must exist before this one?
+
+## Files
+Which frontend files and which .gs files will be created or changed?
+
+## Rules
+What logic must it follow?
+
+## Steps
+1.
+2.
+3.
+
+## Edge Cases
+What unusual situations should it handle?
+
+## Success Test
+How do I know it works?`;
+
+const CLAUDE_RULES = `You are helping me build a beginner-friendly operations system for Progression Vertical Climbing Gym.
+
+Stack:
+- Frontend: HTML, CSS, JavaScript
+- Hosting: GitHub Pages
+- Database: Google Sheets
+- Backend/API/automation: Google Apps Script
+- Weekly report: Slack Incoming Webhook
+- No complex backend server
+
+Important working rules:
+- Build one feature at a time.
+- Do not rewrite unrelated files.
+- Keep code beginner-friendly and clearly commented.
+- Tell me exactly which files changed.
+- Tell me exactly how to test the change.
+- Frontend files go in GitHub, not Apps Script.
+- Apps Script should only contain .gs backend files.
+- Gear lists, course templates, and outdoor rental prices must come from Google Sheets, not hard-coded frontend data.
+- Outdoor rental checkout must generate a printable agreement with filled details and disclaimer text.
+- Do not store full passport numbers in version 1.`;
+
+const PROMPTS = {
+  1: `I am building the Progression Vertical Operations System. Please read the attached/project introduction carefully before coding.
+
+Your first task is only to understand and summarize the system.
+
+Please explain back to me:
+1. The frontend layer
+2. The Apps Script backend/API layer
+3. The Google Sheets database layer
+4. How Gear Inspection connects to the database
+5. How Course Gear Check-Out connects to the database
+6. How Outdoor Rental Check-Out and the printable agreement connect to the database
+7. How Gear Return and Slack weekly reports connect to the system
+
+Do not write code yet.`,
+
+  2: `Before we code, I want to use this feature-spec workflow for every feature.
+
+Please confirm you will follow this process:
+- Review the feature spec first
+- Ask questions if anything is unclear or risky
+- Implement only the requested feature
+- Do not rewrite unrelated files
+- Tell me exactly which files changed
+- Tell me exactly how to test the feature
+
+Here is the feature template I want to use:
+
+# Feature: [name]
+
+## Goal
+
+## User
+
+## Inputs
+
+## Output
+
+## Data Used
+
+## Rules
+
+## Steps
+
+## Edge Cases
+
+## Success Test
+
+Do not write code yet. Just confirm the workflow and suggest any small improvement to the template.`,
+
+  3: `Please create the recommended GitHub repo folder/file structure for the Progression Vertical Operations System.
+
+Stack:
+- Frontend: HTML, CSS, JavaScript
+- Hosting: GitHub Pages
+- Database: Google Sheets
+- Backend/API/automation: Google Apps Script
+- Slack weekly report via Incoming Webhook
+
+Please output:
+1. The folder tree
+2. What each folder/file is for
+3. Which files belong in GitHub
+4. Which files belong in Apps Script
+
+Do not write full app code yet.`,
+
+  4: `# Feature: Create Google Sheets database tabs
+
+## Goal
+Create the shared Google Sheets database for gear inspection, course checkout, outdoor rental checkout, gear return, and weekly reports.
+
+## User
+Admin/manager setting up the system.
+
+## Inputs
+Required tab names and column headers from the project introduction.
+
+## Output
+A beginner-friendly Apps Script file named Setup.gs that creates all tabs, headers, and starter sample data.
+
+## Data Used
+Creates these tabs:
+GEAR_MASTER
+COURSE_MASTER
+COURSE_GEAR_TEMPLATE
+OUTDOOR_RENTAL_MASTER
+INSPECTION_LOG
+RETIRED_GEAR_LOG
+CHECKOUT_LOG
+RETURN_LOG
+WEEKLY_REPORT_LOG
+
+## Depends On
+The Google Sheet named Progression Vertical Gear Operations Database must already exist.
+The Apps Script project should be opened from that Google Sheet.
+No previous app features are required.
+
+## Files
+Create or change this Apps Script backend file:
+apps-script/Setup.gs
+
+No frontend files should be created or changed in this step.
+
+## Rules
+Do not wipe existing log data if setupDatabase is run again.
+Include outdoor rental items and prices from the rental policy.
+Keep the code beginner-friendly and commented.
+
+## Steps
+1. Create missing tabs.
+2. Add or update header rows.
+3. Add starter sample data only if master sheets are empty.
+4. Freeze header rows.
+
+## Edge Cases
+Setup is run more than once.
+Some tabs already exist.
+Some master data already exists.
+
+## Success Test
+Running setupDatabase() creates all required tabs and headers without deleting existing log records.
+
+Please implement only Setup.gs and explain how to run it.`,
+
+  5: `# Feature: Define CHECKOUT_LOG and RETURN_LOG columns
+
+## Goal
+Make sure the database can store both course checkout and outdoor rental checkout in the same connected system.
+
+## User
+Admin/manager and future staff workflows.
+
+## Inputs
+Course checkout fields, outdoor rental customer fields, deposit fields, printable agreement fields, and return/charge fields.
+
+## Output
+Updated CHECKOUT_LOG and RETURN_LOG header definitions.
+
+## Data Used
+CHECKOUT_LOG
+RETURN_LOG
+
+## Rules
+CHECKOUT_LOG must support checkout_type = Course and checkout_type = Outdoor Rental.
+Outdoor rental rows need customer details, deposit details, rental totals, agreement printed, and signature collected.
+RETURN_LOG must support returned quantities, issue details, late/dirty/damage/loss charges, deposit returned, and final amount due.
+Do not store full passport numbers in version 1.
+
+## Steps
+1. Review the existing columns.
+2. Add missing columns.
+3. Keep existing columns where possible.
+4. Explain the purpose of each new outdoor rental field.
+
+## Edge Cases
+Course checkout rows do not need customer/deposit fields.
+Outdoor rental rows may not have course_id or course_name.
+
+## Success Test
+One CHECKOUT_LOG tab can store both a course checkout and an outdoor rental checkout clearly.
+
+Please update only the database/header design and any relevant setup code.`,
+
+  6: `# Feature: Apps Script API foundation
+
+## Goal
+Create the backend API foundation for the web apps.
+
+## User
+Frontend web apps calling Google Apps Script.
+
+## Inputs
+JSON requests from frontend with action and data.
+
+## Output
+Code.gs, Sheets.gs, and Api.gs.
+
+## Data Used
+All Google Sheets tabs as needed.
+
+## Rules
+Apps Script files only. Do not include frontend HTML/CSS/JS here.
+Code.gs handles doGet, doPost, JSON responses, and action routing.
+Sheets.gs handles sheet helpers.
+Api.gs handles operations actions.
+Keep functions beginner-friendly.
+
+## Steps
+1. Create Code.gs.
+2. Create Sheets.gs.
+3. Create Api.gs with placeholder/initial API actions.
+4. Add a simple test function.
+
+## Edge Cases
+Missing request body.
+Unknown API action.
+Missing sheet tab.
+
+## Success Test
+testApiGetCourses() logs active courses from COURSE_MASTER.
+
+Please implement only the Apps Script API foundation files and explain where to paste each one.`,
+
+  7: `Please guide me step by step to deploy my Google Apps Script project as a Web App.
+
+Context:
+- Project name: Progression Vertical Ops Backend
+- Execute as: Me
+- Access: Anyone
+- Frontend will call the deployed Web App URL
+
+Please include:
+1. Exact deployment steps
+2. What permissions to approve
+3. How to copy the Web App URL
+4. Where to paste it in shared/config.js
+5. What to do when Apps Script code changes later
+
+Do not write new app code.`,
+
+  8: `# Feature: Load gear by category
+
+## Goal
+When staff select an inspection category, show only active gear for that category.
+
+## User
+Staff doing daily gear inspection.
+
+## Inputs
+Selected category: FIT, Gym, Caving, Outdoor Rental, or Route Setting.
+
+## Output
+Gear list with gear_type_id, gear_name, category, and expected_qty.
+
+## Data Used
+Reads GEAR_MASTER.
+
+## Rules
+Only show active gear.
+Do not hard-code gear list in frontend.
+Gear must come from Google Sheets.
+
+## Steps
+1. Frontend sends selected category to API.
+2. API reads GEAR_MASTER.
+3. API filters by category and active.
+4. Frontend renders gear list.
+
+## Edge Cases
+Blank category.
+No gear in category.
+API error.
+
+## Success Test
+Selecting FIT shows only active FIT gear from Google Sheets.
+
+Please implement only this feature and list changed files.`,
+
+  9: `# Feature: Quantity validation
+
+## Goal
+Prevent staff from submitting inspection rows with mismatched quantity totals.
+
+## User
+Staff doing daily gear inspection.
+
+## Inputs
+Expected Qty, Actual Qty, Good Qty, Monitor Qty, Retired Qty.
+
+## Output
+Calculated Missing Qty and clear validation warnings.
+
+## Data Used
+Frontend form values. Later saved to INSPECTION_LOG.
+
+## Rules
+Actual Qty must equal Good Qty + Monitor Qty + Retired Qty.
+Missing Qty = Expected Qty - Actual Qty.
+Block submit if actual does not match quality totals.
+
+## Steps
+1. Watch quantity inputs.
+2. Calculate Missing Qty.
+3. Show warning if totals do not match.
+4. Disable submit until fixed.
+
+## Edge Cases
+Blank values.
+Negative values.
+Actual higher than expected.
+
+## Success Test
+Actual 10, Good 8, Monitor 1, Retired 0 is blocked.
+Actual 10, Good 9, Monitor 1, Retired 0 is allowed.
+
+Please implement only this feature and list changed files.`,
+
+  10: `# Feature: Submit inspection
+
+## Goal
+Save one category inspection to Google Sheets.
+
+## User
+Staff doing daily gear inspection.
+
+## Inputs
+Date, inspector, category, gear item quantities, notes.
+
+## Output
+Rows saved to INSPECTION_LOG.
+
+## Data Used
+Writes INSPECTION_LOG.
+
+## Rules
+One category inspection creates one shared submission_id.
+Each gear item gets one row.
+Validate quantities before saving.
+
+## Steps
+1. Staff fills inspection form.
+2. Frontend validates all rows.
+3. Frontend sends data to API.
+4. API creates submission_id.
+5. API appends rows to INSPECTION_LOG.
+
+## Edge Cases
+No gear items.
+Missing inspector name.
+Validation mismatch.
+
+## Success Test
+Submitting FIT inspection creates multiple INSPECTION_LOG rows with the same submission_id.
+
+Please implement only this feature and list changed files.`,
+
+  11: `# Feature: Retired gear logging
+
+## Goal
+If staff retire gear during inspection, save extra retired gear details.
+
+## User
+Staff doing daily gear inspection.
+
+## Inputs
+Retired Qty, damage detail, moved to retired box, action needed.
+
+## Output
+Rows saved to RETIRED_GEAR_LOG.
+
+## Data Used
+Writes INSPECTION_LOG and RETIRED_GEAR_LOG.
+
+## Rules
+If Retired Qty > 0, show retired gear fields.
+Damage detail is required.
+Moved to retired box must be Yes.
+No photo field required in version 1.
+
+## Steps
+1. Staff enters Retired Qty.
+2. App shows retired gear fields.
+3. Staff fills damage detail and confirms moved to retired box.
+4. Submit saves inspection and retired gear rows.
+
+## Edge Cases
+Retired Qty > 0 but no damage detail.
+Moved to retired box is No.
+
+## Success Test
+Retiring 1 harness saves a RETIRED_GEAR_LOG row linked to the inspection_submission_id.
+
+Please implement only this feature and list changed files.`,
+
+  12: `# Feature: Daily inspection dashboard
+
+## Goal
+Show today’s inspection status for all required categories.
+
+## User
+Staff and managers checking daily inspection completion.
+
+## Inputs
+Selected date, default today.
+
+## Output
+Dashboard statuses for FIT, Gym, Caving, Outdoor Rental, and Route Setting.
+
+## Data Used
+Reads INSPECTION_LOG.
+
+## Rules
+All 5 categories are expected daily.
+No rows means Pending.
+Retired Qty > 0 means Completed with retired gear.
+Missing or monitor quantity means Completed with issue.
+Otherwise Completed.
+
+## Steps
+1. Load today’s inspection log rows.
+2. Group by category.
+3. Calculate status.
+4. Render dashboard.
+
+## Edge Cases
+No inspections today.
+Multiple submissions for same category.
+Retired and missing gear in same category.
+
+## Success Test
+After submitting FIT, dashboard changes FIT from Pending to Completed or issue status.
+
+Please implement only this feature and list changed files.`,
+
+  13: `# Feature: Load course list
+
+## Goal
+Show active courses in the Course Gear Check-Out form.
+
+## User
+Staff checking out gear for courses.
+
+## Inputs
+No user input besides opening the form.
+
+## Output
+Course dropdown options.
+
+## Data Used
+Reads COURSE_MASTER.
+
+## Rules
+Only active courses appear.
+Course list must come from Google Sheets.
+
+## Steps
+1. Frontend calls getCourses.
+2. API reads COURSE_MASTER.
+3. API returns active courses.
+4. Frontend renders dropdown.
+
+## Edge Cases
+No active courses.
+API error.
+
+## Success Test
+Course dropdown matches active rows in COURSE_MASTER.
+
+Please implement only this feature and list changed files.`,
+
+  14: `# Feature: Load course gear template
+
+## Goal
+When staff select a course, show suggested gear for that course.
+
+## User
+Staff checking out gear for courses.
+
+## Inputs
+Selected course_id.
+
+## Output
+Gear list with suggested quantities.
+
+## Data Used
+Reads COURSE_GEAR_TEMPLATE.
+
+## Rules
+Only active template rows appear.
+No hard-coded course gear in frontend.
+
+## Steps
+1. Staff selects course.
+2. Frontend calls getCourseGearTemplate.
+3. API returns active template rows.
+4. Frontend renders quantity taken inputs.
+
+## Edge Cases
+Course has no template.
+Template gear name does not match GEAR_MASTER.
+
+## Success Test
+Top Rope Safety Course loads only its suggested gear.
+
+Please implement only this feature and list changed files.`,
+
+  15: `# Feature: Submit course gear checkout
+
+## Goal
+Save course gear leaving the gear room and create a Pending Return task.
+
+## User
+Staff checking out gear for a course.
+
+## Inputs
+Date, guide/staff name, course, course session dropdown, gear list, taken quantities, notes.
+
+## Output
+Rows saved to CHECKOUT_LOG.
+
+## Data Used
+Writes CHECKOUT_LOG.
+
+## Rules
+checkout_type = Course.
+All rows share one checkout_id.
+Status starts as Pending Return.
+At least one item must have taken_qty greater than 0.
+The course_time field should be a dropdown, not a clock input.
+Allowed course_time values:
+- Full-Day
+- AM-Half-Day
+- PM-Half-Day
+
+## Steps
+1. Staff fills checkout form.
+2. Staff selects course session: Full-Day, AM-Half-Day, or PM-Half-Day.
+3. Frontend validates required fields.
+4. API creates checkout_id.
+5. API saves one row per gear item.
+
+## Edge Cases
+Missing guide name.
+Missing course session.
+No gear selected.
+Quantity is 0 for every item.
+
+## Success Test
+Submitting a course checkout creates CHECKOUT_LOG rows and a Pending Return task.
+
+Please implement only this feature and list changed files.`,
+
+  16: `# Feature: Load outdoor rental item list
+
+## Goal
+Show outdoor rental items and daily prices from Google Sheets.
+
+## User
+Front desk or wall staff processing outdoor rentals.
+
+## Inputs
+No input besides opening Outdoor Rental Check-Out.
+
+## Output
+Rental item list with item name, size requirement, and daily rate.
+
+## Data Used
+Reads OUTDOOR_RENTAL_MASTER.
+
+## Rules
+Only active rental items appear.
+Prices must come from Google Sheets.
+Do not hard-code rental prices in frontend.
+Helmet, Harness, and Shoes should have size_required = TRUE.
+Size-required items must use size breakdown rows in the UI.
+
+## Steps
+1. Frontend calls getOutdoorRentalItems.
+2. API reads OUTDOOR_RENTAL_MASTER.
+3. API returns active items.
+4. Frontend renders rental item rows.
+
+## Edge Cases
+No active rental items.
+Missing daily_rate.
+Missing size_required value.
+
+## Success Test
+Helmet, Harness, and Shoes load as size-required items. Rope and non-sized items load with simple quantity.
+
+Please implement only this feature and list changed files.`,
+
+  17: `# Feature: Customer and rental details form
+
+## Goal
+Collect required customer, rental date, staff, and deposit information.
+
+## User
+Staff processing outdoor rental check-out.
+
+## Inputs
+Customer name, email, phone, checkout date, planned return date/time, deposit type, deposit amount/note, checkout staff name.
+
+## Output
+Validated outdoor rental details ready to save and print.
+
+## Data Used
+Later writes CHECKOUT_LOG.
+
+## Rules
+Customer name and phone are required.
+Checkout staff name is required.
+Deposit type is required.
+If deposit type is Cash, deposit amount should be required.
+If deposit type is Passport, do not require full passport number.
+All form fields should use one consistent shared form style.
+Use reusable classes such as form-section, form-grid, form-field, and form-control.
+Apply the same form-control style to text, email, phone, number, date, select, and textarea fields.
+Do not style individual fields by ID, such as #email or #phone, unless there is a truly unique reason.
+Mobile layout should be one column.
+Desktop may use two columns only for natural pairs, but each field should fill its column width.
+
+## Steps
+1. Create or reuse shared form classes.
+2. Render customer/rental details form with consistent field styling.
+3. Validate required fields.
+4. Show clear warnings.
+5. Allow submit only when valid.
+
+## Edge Cases
+Return date before checkout date.
+Missing deposit.
+Customer under 18 if age field is added later.
+
+## Success Test
+Staff cannot submit an outdoor rental without customer, deposit, and staff details.
+Customer Name, Email, Phone, Staff Name, Deposit Type, Deposit Amount, Discount Type, and Discount Value all look like the same design system.
+
+Please implement only this feature and list changed files.`,
+
+  18: `# Feature: Rental item quantities and totals
+
+## Goal
+Calculate rental subtotal, discount, rental days, and total.
+
+## User
+Staff processing outdoor rentals.
+
+## Inputs
+Rental item quantities, size breakdown rows, daily rates, rental days, discount type, discount amount.
+
+## Output
+Subtotal, discount, and total amount.
+
+## Data Used
+Reads OUTDOOR_RENTAL_MASTER. Later writes CHECKOUT_LOG.
+
+## Rules
+Subtotal = sum(daily_rate x quantity x rental_days).
+Total = subtotal - discount.
+Total cannot be negative.
+At least one item must have quantity greater than 0.
+For size_required = TRUE items, staff should enter Size + Qty rows instead of one total quantity box.
+The item total quantity is calculated from the size rows.
+For size_required = FALSE items, keep the simple quantity box.
+Save size details as size_breakdown, such as S:2, M:3 or 38:1, 40:2.
+
+## Steps
+1. Watch simple quantity inputs for non-sized items.
+2. Watch Size + Qty rows for sized items.
+3. Calculate each sized item total from its size rows.
+4. Calculate rental days.
+5. Calculate subtotal.
+6. Apply discount.
+7. Render total.
+
+## Edge Cases
+Rental days is blank.
+Discount larger than subtotal.
+Quantity is not a number.
+Size-required item has quantity but no size.
+Size row has size but quantity is 0.
+
+## Success Test
+Helmet S:2 and M:3 calculates Helmet taken_qty = 5 and includes size_breakdown = S:2, M:3.
+Changing quantity or rental days updates subtotal and total correctly.
+
+Please implement only this feature and list changed files.`,
+
+  19: `# Feature: Submit outdoor rental checkout
+
+## Goal
+Save outdoor rental checkout rows and create a Pending Return task.
+
+## User
+Staff processing outdoor rentals.
+
+## Inputs
+Customer details, rental dates, deposit details, staff name, rental items, totals.
+
+## Output
+Rows saved to CHECKOUT_LOG.
+
+## Data Used
+Writes CHECKOUT_LOG.
+
+## Rules
+checkout_type = Outdoor Rental.
+All rows share one checkout_id.
+Status starts as Pending Return.
+agreement_printed and customer_signature_collected can start as No.
+For size-required items, save calculated total quantity to taken_qty.
+For size-required items, save size details to size_breakdown.
+
+## Steps
+1. Validate outdoor rental form.
+2. API creates checkout_id.
+3. API saves one row per rental item with quantity > 0.
+4. Return checkout_id to frontend.
+
+## Edge Cases
+No rental items selected.
+Missing deposit.
+Size-required item missing size breakdown.
+API save fails.
+
+## Success Test
+Outdoor rental appears in pending returns with customer and deposit details.
+
+Please implement only this feature and list changed files.`,
+
+  20: `# Feature: Generate filled rental agreement
+
+## Goal
+Create a print-friendly rental agreement with filled customer, rental, item, deposit, total, and staff details.
+
+## User
+Staff printing the agreement for customer signature.
+
+## Inputs
+Saved outdoor rental checkout data.
+
+## Output
+Printable agreement page and print button from the outdoor rental success screen.
+
+## Data Used
+Reads CHECKOUT_LOG by checkout_id.
+Uses loadCheckoutById API action.
+
+## Depends On
+Outdoor rental checkout must already save a checkout_id.
+CHECKOUT_LOG must include customer, rental item, deposit, pricing, and size_breakdown data.
+Api.gs and Code.gs must support loading a checkout by checkout_id.
+
+## Files
+Frontend:
+- print/rental-agreement.html
+- print/rental-agreement.css
+- print/rental-agreement.js
+- gear-checkout-return checkout success screen file
+
+Apps Script:
+- Api.gs
+- Code.gs
+
+## Rules
+Printed page must show filled details, not a blank policy.
+Include rental item table with quantity, size, equipment number if available, daily rate, and total.
+Include subtotal, discount, and total.
+For size-required items, print the size breakdown clearly, for example Helmet: S x 2, M x 3.
+Print page should load checkout data from URL query parameter, for example ?id=CHK-001.
+Date formatter must handle Google Sheets ISO timestamps and display local Thailand date, for example 15 May 2026.
+Use A4 print-optimized styling.
+Hide screen-only buttons in @media print.
+Layout should fit all 13 rental items, terms, and signatures on one A4 page.
+Customer Details and Rental Period should be grouped in a two-column row.
+Deposit should be in the left column and Pricing in the right column.
+
+## Steps
+1. Staff clicks Save + Print Agreement.
+2. Rental success screen stores the last checkout_id.
+3. Staff clicks Print Rental Agreement.
+4. App opens print/rental-agreement.html?id=CHECKOUT_ID.
+5. Print page calls loadCheckoutById.
+6. Page renders print-friendly agreement with filled details.
+7. Staff prints.
+
+## Edge Cases
+Missing checkout_id.
+Checkout not found.
+Print popup blocked.
+Google Sheets date value arrives as an ISO timestamp.
+Long item list risks spilling onto page 2.
+
+## Success Test
+Print preview shows customer details, rental period, all 13 rental items, size breakdown, deposit, pricing, 8 agreement clauses, and signature lines on one A4 page.
+
+Please implement only this feature and list changed files.`,
+
+  21: `# Feature: Agreement disclaimer text
+
+## Goal
+Include the important rental policy/disclaimer text on the printed agreement.
+
+## User
+Customer signing rental agreement and staff collecting signature.
+
+## Inputs
+Policy points from Progression Vertical rental policy.
+
+## Output
+Readable disclaimer section on print page.
+
+## Data Used
+Static policy text in print page or config file.
+
+## Rules
+Include inherent risk, customer responsibility, equipment inspection, damage/loss responsibility, late return charge, dirty gear charge, and age confirmation.
+Keep text concise enough to print cleanly.
+
+## Steps
+1. Add disclaimer section to print page.
+2. Add customer signature/date/staff name lines.
+3. Style for printing.
+
+## Edge Cases
+Text too long for one page.
+Mobile print preview.
+
+## Success Test
+Printed agreement has enough policy text for customer to sign acceptance.
+
+Please implement only this feature and list changed files.`,
+
+  22: `# Feature: Confirm signature collected
+
+## Goal
+Track whether the printed rental agreement was printed and signed.
+
+## User
+Staff processing outdoor rental checkout.
+
+## Inputs
+agreement_printed and customer_signature_collected confirmation.
+
+## Output
+Updated CHECKOUT_LOG fields.
+
+## Data Used
+Updates CHECKOUT_LOG.
+
+## Rules
+Staff should be able to confirm signature after printing.
+If signature is not collected, pending task should show attention needed.
+
+## Steps
+1. Add printed/signature controls.
+2. Save confirmation to CHECKOUT_LOG.
+3. Show status/attention on pending returns.
+
+## Edge Cases
+Staff prints but forgets to confirm.
+Customer refuses to sign.
+
+## Success Test
+Staff can mark signature collected and the value appears in CHECKOUT_LOG.
+
+Please implement only this feature and list changed files.`,
+
+  23: `# Feature: Collect FIT program course names for course gear checkout
+
+## Goal
+Collect the course/program names needed to build COURSE_MASTER rows for FIT-related gear checkouts.
+
+## User
+Admin/manager preparing course names before editing the spreadsheet.
+
+## Inputs
+Progression Vertical website course pages and internal knowledge about Scouting and Instructor Training.
+
+## Output
+A clean course list for the Progression Vertical Gear Operations Database.
+
+## Data Used
+Later updates COURSE_MASTER.
+COURSE_GEAR_TEMPLATE will be skipped for now and completed later.
+
+## Depends On
+Google Sheets database exists.
+COURSE_MASTER tab exists.
+
+## Files
+No code files should be changed in this step.
+This is a planning/data collection step.
+
+## Rules
+Focus on the Course Gear Check-Out section.
+There are 3 activity groups that need FIT gear:
+1. FIT courses
+2. Scouting
+3. Instructor Training
+
+For FIT courses, collect rock climbing and caving course names from the website.
+Exclude indoor caving courses from Course Gear Check-Out because their gear is used at the gym and only needs quantity/quality inspection.
+Do not collect gear templates yet.
+Do not invent gear quantities.
+
+## Steps
+1. Review website course names.
+2. Exclude indoor caving courses.
+3. Add Scouting and Instructor Training as activity names.
+4. Return a COURSE_MASTER planning list only.
+
+## Edge Cases
+Website course names are marketing names, not internal operation names.
+One course has multiple versions or levels.
+Indoor caving courses should not appear in Course Gear Check-Out.
+Scouting and Instructor Training may not be on the public website.
+
+## Success Test
+We have a clean COURSE_MASTER course/activity list ready to add to Google Sheets, with COURSE_GEAR_TEMPLATE intentionally skipped for later.
+
+Use this prompt in a new chat:
+
+I am building the Progression Vertical Gear Operations Database for a Google Sheets + Apps Script operations system.
+
+I need help collecting and structuring course names for the Course Gear Check-Out section.
+
+Context:
+There are 3 activity groups that need FIT gear checkout:
+1. FIT courses
+2. Scouting
+3. Instructor Training
+
+For FIT courses, I am using these public website pages:
+- https://www.thailandclimbing.com/rock-climbing-courses
+- https://www.thailandclimbing.com/caving-courses
+
+Important:
+Some caving courses are indoor courses. Please exclude indoor caving courses from Course Gear Check-Out because those gear sets are used at the gym and should only be handled through inspection/quality checks for now.
+
+For now, I only have course names. Gear type and suggested quantities for each course will come later.
+Please skip COURSE_GEAR_TEMPLATE for now.
+
+Goal:
+Please help me extract and organize the information needed for this Google Sheets tab:
+
+COURSE_MASTER
+Columns:
+- course_id
+- course_name
+- active
+
+What I need from you:
+1. Identify course names from the website text/links.
+2. Separate them into sensible activity groups:
+   - FIT Rock Climbing Courses
+   - FIT Outdoor Caving Courses
+   - Scouting
+   - Instructor Training
+3. Exclude indoor caving courses from the course checkout list.
+4. Help create sheet-ready rows for COURSE_MASTER only.
+5. Do not create COURSE_GEAR_TEMPLATE rows yet.
+6. Do not invent gear quantities.
+
+Recommended output format:
+
+Course list:
+| course_id | course_name | activity_group | active | include_in_course_checkout | notes |
+
+Questions for me:
+Before creating final sheet rows, ask me any questions needed to confirm:
+- course names
+- internal course categories
+- whether a course should be included in Course Gear Check-Out
+- whether Scouting and Instructor Training should be separate courses or activity groups
+
+Please start by extracting the course names from the links above and marking indoor caving courses as excluded.`,
+
+  24: `# Feature: Convert FIT course names into COURSE_MASTER rows
+
+## Goal
+Turn the collected FIT, Scouting, and Instructor Training course names into clean COURSE_MASTER rows.
+
+## User
+Admin/manager updating the spreadsheet.
+
+## Inputs
+Confirmed course names and activity groups.
+
+## Output
+Rows ready to paste into COURSE_MASTER.
+
+## Data Used
+Writes/plans rows for COURSE_MASTER.
+COURSE_GEAR_TEMPLATE is intentionally skipped for now.
+
+## Depends On
+Step 23 course data collection is complete.
+COURSE_MASTER tab exists.
+
+## Files
+No code files should be changed unless the app needs new display fields later.
+
+## Rules
+Use stable course_id values.
+Keep course names staff-friendly, not overly long marketing titles.
+Use active = TRUE for current courses.
+Exclude indoor caving courses from Course Gear Check-Out.
+Do not create COURSE_GEAR_TEMPLATE rows yet.
+
+## Steps
+1. Review collected course list.
+2. Assign course_id values.
+3. Confirm activity_group.
+4. Create COURSE_MASTER rows.
+
+## Edge Cases
+Same public course has different internal operation name.
+Scouting and Instructor Training may be activity groups instead of public courses.
+Indoor caving course is useful for inspection but not checkout.
+
+## Success Test
+Rows can be pasted into COURSE_MASTER and the Course Gear Check-Out dropdown can load the names.
+
+Please help me convert the confirmed FIT course names into sheet-ready COURSE_MASTER rows only. Skip COURSE_GEAR_TEMPLATE for now. Do not write app code unless a missing data field is discovered.`,
+
+  25: `# Feature: Prepare future COURSE_GEAR_TEMPLATE and activity group filter
+
+## Goal
+Prepare the later step where gear templates and an optional activity group filter will be added.
+
+## User
+Staff checking out FIT gear for courses, Scouting, or Instructor Training.
+
+## Inputs
+Course/activity list from COURSE_MASTER and future gear templates.
+
+## Output
+Placeholder decision and future action plan.
+
+## Data Used
+COURSE_MASTER
+Future COURSE_GEAR_TEMPLATE
+Optional future field: activity_group
+
+## Depends On
+Step 23 and Step 24 are complete.
+Gear type/suggested quantity data will come later.
+
+## Files
+Possible frontend files:
+- gear-checkout-return/index.html
+- gear-checkout-return/checkout-return.js
+- gear-checkout-return/checkout-return.css
+
+Possible Apps Script files:
+- Api.gs
+- Sheets.gs
+
+## Rules
+Do not build COURSE_GEAR_TEMPLATE yet.
+Do not add an activity group filter yet unless the course list is already too confusing.
+Come back to this after gear types and suggested quantities are confirmed.
+If added, activity groups should be:
+- FIT Course
+- Scouting
+- Instructor Training
+
+Course gear templates must still come from Google Sheets.
+
+## Steps
+1. Review number of courses/activities.
+2. Mark this step as pending until gear templates are ready.
+3. Later, create COURSE_GEAR_TEMPLATE rows.
+4. Later, decide if a group filter is useful.
+
+## Edge Cases
+Course belongs to more than one group.
+Scouting or Instructor Training has only one template.
+Adding a filter makes the UI slower instead of faster.
+
+## Success Test
+This step is ready to return to once gear type and suggested quantity information is available.
+
+Please create a future action checklist for adding COURSE_GEAR_TEMPLATE rows and deciding whether to add a FIT Course / Scouting / Instructor Training activity group filter. Do not implement code yet.`,
+
+  26: `# Feature: Pending return dashboard
+
+## Goal
+Show all unfinished course and outdoor rental return tasks.
+
+## User
+Staff checking what gear still needs to come back.
+
+## Inputs
+No input besides opening the dashboard.
+
+## Output
+List of Pending Return and Overdue tasks.
+
+## Data Used
+Reads CHECKOUT_LOG.
+
+## Rules
+Show checkout_type, date, course/customer, staff/guide, and status.
+Course and Outdoor Rental tasks should both appear.
+Outdoor rental tasks should show customer/deposit/signature attention when relevant.
+
+## Steps
+1. API loads open checkout tasks.
+2. API groups rows by checkout_id.
+3. Frontend renders task list.
+4. Staff opens a task.
+
+## Edge Cases
+No pending tasks.
+Mixed course and outdoor rental tasks.
+Duplicate rows for same checkout_id.
+
+## Success Test
+Staff can open a course task or outdoor rental task and see the original gear list.
+
+Please implement only this feature and list changed files.`,
+
+  27: `# Feature: Submit course gear return
+
+## Goal
+Record course gear return quantities and close the task.
+
+## User
+Staff receiving gear back after a course.
+
+## Inputs
+Returned quantities, same amount Yes/No, issue detail, notes.
+
+## Output
+Rows saved to RETURN_LOG and CHECKOUT_LOG status updated.
+
+## Data Used
+Reads CHECKOUT_LOG. Writes RETURN_LOG. Updates CHECKOUT_LOG.
+
+## Rules
+If all returned quantities match taken quantities, status = Completed.
+If missing or damaged, status = Completed with Issue.
+
+## Steps
+1. Staff opens pending course task.
+2. Staff enters returned quantities.
+3. API saves return rows.
+4. API updates checkout status.
+
+## Edge Cases
+Returned quantity greater than taken quantity.
+Missing issue detail when quantity does not match.
+
+## Success Test
+Returned course task disappears from pending list and status updates correctly.
+
+Please implement only this feature and list changed files.`,
+
+  28: `# Feature: Submit outdoor rental return
+
+## Goal
+Record outdoor rental return, condition, charges, deposit return, and final amount due.
+
+## User
+Staff receiving outdoor rental gear back.
+
+## Inputs
+Returned quantities, issue detail, return staff name, actual return date/time, late return, extra day charge, dirty charge, damage/loss charge, deposit returned, deposit note, final amount due.
+
+## Output
+Rows saved to RETURN_LOG and CHECKOUT_LOG status updated.
+
+## Data Used
+Reads CHECKOUT_LOG. Writes RETURN_LOG. Updates CHECKOUT_LOG.
+
+## Rules
+If no issues/charges and quantities match, status = Completed.
+If missing, damaged, dirty, late, or charged, status = Completed with Issue.
+Deposit return details must be recorded.
+
+## Steps
+1. Staff opens outdoor rental pending task.
+2. Staff enters returned quantities and charges.
+3. Staff records deposit return.
+4. API saves return rows.
+5. API updates checkout status.
+
+## Edge Cases
+Late return with no extra charge.
+Deposit not returned.
+Final amount due is negative.
+
+## Success Test
+Outdoor rental return saves charges and deposit details into RETURN_LOG.
+
+Please implement only this feature and list changed files.`,
+
+  29: `# Feature: Overdue returns
+
+## Goal
+Mark open return tasks as overdue after the expected return date has passed.
+
+## User
+Staff checking pending returns.
+
+## Inputs
+Checkout date and planned return date.
+
+## Output
+Overdue status on pending dashboard.
+
+## Data Used
+Reads and updates CHECKOUT_LOG.
+
+## Rules
+If planned_return_date is before today and status is Pending Return, show Overdue.
+For course checkout without planned_return_date, use checkout date as fallback.
+
+## Steps
+1. Load open checkouts.
+2. Compare expected return date to today.
+3. Mark or display Overdue.
+
+## Edge Cases
+Missing planned return date.
+Different date formats.
+Task already completed.
+
+## Success Test
+Yesterday’s unreturned course or outdoor rental appears as Overdue.
+
+Please implement only this feature and list changed files.`,
+
+  30: `# Feature: Build weekly report text
+
+## Goal
+Create weekly operations report text before sending it to Slack.
+
+## User
+Managers and team leads.
+
+## Inputs
+Week start and week end.
+
+## Output
+Readable weekly report text.
+
+## Data Used
+Reads CHECKOUT_LOG, RETURN_LOG, INSPECTION_LOG, RETIRED_GEAR_LOG.
+
+## Rules
+Include course gear usage, outdoor rental usage, return status counts, inspection completion, retired gear, and attention needed.
+
+## Steps
+1. Collect rows for the week.
+2. Calculate summaries.
+3. Build readable report text.
+4. Return report text for review.
+
+## Edge Cases
+No activity during the week.
+Pending or overdue returns.
+Retired gear without action_needed.
+
+## Success Test
+Generated report text is readable and includes all required sections before sending to Slack.
+
+Please implement only this feature and list changed files.`,
+
+  31: `# Feature: Slack Incoming Webhook
+
+## Goal
+Send weekly report text to Slack channel #team-ops-vert.
+
+## User
+Managers and team receiving weekly operations summary.
+
+## Inputs
+Slack Incoming Webhook URL and report text.
+
+## Output
+Slack message sent.
+
+## Data Used
+Apps Script Properties for webhook URL.
+
+## Rules
+Do not hard-code webhook URL directly in code.
+Use Apps Script Properties.
+Include a test function.
+
+## Steps
+1. Create Slack.gs.
+2. Add function to save webhook URL.
+3. Add function to send Slack message.
+4. Add test function.
+
+## Edge Cases
+Missing webhook URL.
+Slack request fails.
+
+## Success Test
+Test function sends one sample report to Slack.
+
+Please implement only this feature and explain setup steps.`,
+
+  32: `# Feature: Friday trigger and report log
+
+## Goal
+Automatically send weekly report every Friday and save a copy.
+
+## User
+Managers and operations team.
+
+## Inputs
+Scheduled trigger, week start, week end.
+
+## Output
+Slack message and WEEKLY_REPORT_LOG row.
+
+## Data Used
+Writes WEEKLY_REPORT_LOG.
+
+## Rules
+Send every Friday.
+Save report_text, slack_sent, and sent_at.
+If Slack fails, still save the report with slack_sent = No.
+
+## Steps
+1. Build trigger install function.
+2. Generate weekly report.
+3. Send to Slack.
+4. Log result.
+
+## Edge Cases
+Trigger already exists.
+Slack fails.
+No report data.
+
+## Success Test
+Test run logs report_text, slack_sent, and sent_at in WEEKLY_REPORT_LOG.
+
+Please implement only this feature and explain how to install the trigger.`,
+
+  33: `Please guide me step by step to deploy the frontend with GitHub Pages.
+
+Context:
+- Frontend is plain HTML/CSS/JavaScript
+- Backend is already deployed as Google Apps Script Web App
+- API URL is stored in shared/config.js
+
+Please include:
+1. Which files/folders belong in the GitHub repo
+2. How to upload/commit them
+3. How to enable GitHub Pages
+4. What public URLs I should expect
+5. How to test Gear Inspection, Gear Check-Out & Return, and Print Agreement pages
+
+Do not write new feature code unless a deployment file is missing.`,
+
+  34: `Please create a staff workflow test plan for the Progression Vertical Operations System.
+
+Test these flows:
+1. Normal inspection
+2. Inspection with missing item
+3. Inspection with retired gear
+4. Course checkout
+5. Course return with no issue
+6. Course return with issue
+7. Outdoor rental checkout
+8. Print rental agreement with filled details and disclaimer
+9. Outdoor rental return with deposit handling
+10. Overdue return
+11. Weekly Slack report test
+
+For each test, include:
+- Test data to enter
+- Expected Google Sheets result
+- Expected app status
+- Pass/fail checklist
+
+Do not write app code. Create the test plan only.`,
+
+  35: `Please write a short staff instruction sheet for using the Progression Vertical Operations System.
+
+Audience:
+Gym staff who may work front desk, wall, or gym-floor support.
+
+Keep it practical and non-technical.
+
+Include:
+1. How to complete daily gear inspection
+2. What to do if gear is missing
+3. What to do if gear is retired
+4. How to check out course gear
+5. How to return course gear
+6. How to process outdoor rental checkout
+7. How to print the rental agreement and collect signature
+8. How to process outdoor rental return
+9. How to handle deposits, dirty gear, late returns, damage, or loss
+10. Who to contact if the app fails
+
+Write it as a beginner-friendly staff guide.`
+};
+
+const STEPS = [
+  {
+    phase: 'Phase 1 — Start Clean With Claude',
+    items: [
+      {
+        id: 1,
+        title: 'Create one master Claude project prompt',
+        sub: 'Give Claude the system context, stack, database, and working rules.',
+        detail: `<strong>Goal:</strong> make Claude understand the whole project before it writes code.<br><br>
+Use the Claude rules below as the first message or project instructions:<pre>${CLAUDE_RULES}</pre>
+<strong>Success test:</strong> Claude can explain the architecture back to you as three parts: GitHub Pages frontend, Apps Script API, Google Sheets database.`
+      },
+      {
+        id: 2,
+        title: 'Create the feature-spec habit',
+        sub: 'Before every coding request, fill in the feature template.',
+        detail: `<strong>Use this before code:</strong><pre>${FEATURE_TEMPLATE}</pre>
+<strong>Prompt to Claude:</strong><br>
+<span class="cmd">Please review this feature spec first. Ask questions if something is risky. Then implement only this feature.</span><br><br>
+<strong>Success test:</strong> Claude does not start by rewriting the whole project. It focuses on one feature.`
+      },
+      {
+        id: 3,
+        title: 'Create a GitHub repo folder structure',
+        sub: 'Frontend files and Apps Script copies live in one clean repo.',
+        detail: `<strong>Recommended folders:</strong>
+<pre>progression-vertical-ops/
+  index.html
+  README.md
+  shared/
+    config.js
+    api.js
+    styles.css
+  gear-inspection/
+    index.html
+    inspection.css
+    inspection.js
+  gear-checkout-return/
+    index.html
+    checkout-return.css
+    checkout-return.js
+  apps-script/
+    Setup.gs
+    Code.gs
+    Sheets.gs
+    Api.gs
+    Reports.gs
+    Slack.gs
+  docs/</pre>
+<strong>Success test:</strong> you can point to where frontend files go and where Apps Script files go.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 2 — Database And API Foundation',
+    items: [
+      {
+        id: 4,
+        title: 'Create Google Sheets database tabs',
+        sub: 'Build the shared database tabs, including outdoor rental master data.',
+        detail: `<strong>Tabs needed:</strong>
+<ul>
+  <li>GEAR_MASTER</li>
+  <li>COURSE_MASTER</li>
+  <li>COURSE_GEAR_TEMPLATE</li>
+  <li>OUTDOOR_RENTAL_MASTER</li>
+  <li>INSPECTION_LOG</li>
+  <li>RETIRED_GEAR_LOG</li>
+  <li>CHECKOUT_LOG</li>
+  <li>RETURN_LOG</li>
+  <li>WEEKLY_REPORT_LOG</li>
+</ul>
+<strong>Claude request:</strong> ask for <span class="cmd">Setup.gs</span> only.<br>
+<strong>Success test:</strong> running <span class="cmd">setupDatabase()</span> creates all tabs and sample data.`
+      },
+      {
+        id: 5,
+        title: 'Define checkout and return log columns',
+        sub: 'Make sure CHECKOUT_LOG and RETURN_LOG can support course and outdoor rental workflows.',
+        detail: `<strong>CHECKOUT_LOG must support:</strong>
+<ul>
+  <li>Course gear checkout</li>
+  <li>Outdoor rental checkout</li>
+  <li>Customer details</li>
+  <li>Deposit details</li>
+  <li>Rental totals</li>
+  <li>Agreement printed and signature collected fields</li>
+</ul>
+<strong>RETURN_LOG must support:</strong>
+<ul>
+  <li>Returned quantities</li>
+  <li>Issue details</li>
+  <li>Late, dirty, damage, and loss charges</li>
+  <li>Deposit returned details</li>
+</ul>
+<strong>Success test:</strong> the sheet headers can store both course checkout and outdoor rental records without needing a second system.`
+      },
+      {
+        id: 6,
+        title: 'Build Apps Script API foundation',
+        sub: 'Create Code.gs, Sheets.gs, and Api.gs.',
+        detail: `<strong>Ask Claude for only these backend files:</strong>
+<ul>
+  <li><span class="cmd">Code.gs</span> for doGet, doPost, routing</li>
+  <li><span class="cmd">Sheets.gs</span> for helper functions</li>
+  <li><span class="cmd">Api.gs</span> for gym operations actions</li>
+</ul>
+<strong>Important:</strong> do not put HTML, CSS, or browser JavaScript inside Apps Script for this version.<br><br>
+<strong>Success test:</strong> <span class="cmd">testApiGetCourses()</span> logs the course list.`
+      },
+      {
+        id: 7,
+        title: 'Deploy Apps Script as Web App',
+        sub: 'Get the API URL used by the frontend.',
+        detail: `<strong>Deploy settings:</strong>
+<ul>
+  <li>Type: Web app</li>
+  <li>Execute as: Me</li>
+  <li>Who has access: Anyone</li>
+</ul>
+Copy the deployed URL into <span class="cmd">shared/config.js</span>.<br><br>
+<strong>Success test:</strong> opening the URL shows a small JSON message that the API is running.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 3 — Gear Inspection App',
+    items: [
+      {
+        id: 8,
+        title: 'Feature spec: Load gear by category',
+        sub: 'Staff select a category and see matching active gear.',
+        detail: `<strong>Data used:</strong> reads <span class="cmd">GEAR_MASTER</span>.<br>
+<strong>Rules:</strong> only active gear, no hard-coded gear list in frontend.<br><br>
+<strong>Success test:</strong> selecting FIT only shows active FIT gear from Google Sheets.`
+      },
+      {
+        id: 9,
+        title: 'Feature spec: Quantity validation',
+        sub: 'Actual must equal Good + Monitor + Retired.',
+        detail: `<strong>Rules:</strong>
+<ul>
+  <li>Missing Qty = Expected Qty - Actual Qty</li>
+  <li>Block submission if actual does not equal quality totals</li>
+  <li>Show a clear staff-friendly warning</li>
+</ul>
+<strong>Success test:</strong> wrong totals disable submit and explain the problem.`
+      },
+      {
+        id: 10,
+        title: 'Feature spec: Submit inspection',
+        sub: 'Save one row per gear item in INSPECTION_LOG.',
+        detail: `<strong>Data used:</strong> writes <span class="cmd">INSPECTION_LOG</span>.<br>
+<strong>Rules:</strong> one category inspection gets one shared <span class="cmd">submission_id</span> across all gear rows.<br><br>
+<strong>Success test:</strong> after submit, Google Sheets has the expected rows with the same submission_id.`
+      },
+      {
+        id: 11,
+        title: 'Feature spec: Retired gear logging',
+        sub: 'If Retired Qty is more than 0, capture damage details.',
+        detail: `<strong>Version 1:</strong> no photo upload and no photo link required.<br>
+<strong>Data used:</strong> writes <span class="cmd">RETIRED_GEAR_LOG</span>.<br>
+<strong>Rules:</strong> require damage detail and moved-to-retired-box confirmation.<br><br>
+<strong>Success test:</strong> retired gear creates both inspection and retired log rows.`
+      },
+      {
+        id: 12,
+        title: 'Feature spec: Daily inspection dashboard',
+        sub: 'Show completed/pending status for all 5 categories.',
+        detail: `<strong>Expected daily categories:</strong> FIT, Gym, Caving, Outdoor Rental, Route Setting.<br>
+<strong>Status values:</strong>
+<ul>
+  <li>Pending</li>
+  <li>Completed</li>
+  <li>Completed with retired gear</li>
+  <li>Completed with issue</li>
+</ul>
+<strong>Success test:</strong> after submitting FIT, dashboard changes FIT from Pending to Completed or issue status.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 4 — Course Gear Check-Out',
+    items: [
+      {
+        id: 13,
+        title: 'Feature spec: Load course list',
+        sub: 'Course dropdown reads active courses from Google Sheets.',
+        detail: `<strong>Data used:</strong> reads <span class="cmd">COURSE_MASTER</span>.<br>
+<strong>Success test:</strong> course options match active rows in the sheet.`
+      },
+      {
+        id: 14,
+        title: 'Feature spec: Load course gear template',
+        sub: 'Selected course shows suggested gear list.',
+        detail: `<strong>Data used:</strong> reads <span class="cmd">COURSE_GEAR_TEMPLATE</span>.<br>
+<strong>Rules:</strong> no hard-coded course gear in frontend.<br><br>
+<strong>Success test:</strong> Top Rope Safety Course loads only its suggested gear.`
+      },
+      {
+        id: 15,
+        title: 'Feature spec: Submit course gear checkout',
+        sub: 'Create Pending Return task after gear leaves the room.',
+        detail: `<strong>Data used:</strong> writes <span class="cmd">CHECKOUT_LOG</span>.<br>
+<strong>Rules:</strong> all rows for one course session share one <span class="cmd">checkout_id</span>; <span class="cmd">checkout_type</span> is Course; status starts as Pending Return.<br>
+<strong>Course session dropdown:</strong> save <span class="cmd">course_time</span> as Full-Day, AM-Half-Day, or PM-Half-Day. Do not use a clock input.<br><br>
+<strong>Success test:</strong> pending task appears after checkout submission.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 5 — Outdoor Rental Check-Out',
+    items: [
+      {
+        id: 16,
+        title: 'Feature spec: Load outdoor rental item list',
+        sub: 'Rental gear and prices come from OUTDOOR_RENTAL_MASTER.',
+        detail: `<strong>Data used:</strong> reads <span class="cmd">OUTDOOR_RENTAL_MASTER</span>.<br>
+<strong>Rules:</strong> daily rates must come from Google Sheets, not from hard-coded frontend values. Helmet, Harness, and Shoes should have <span class="cmd">size_required</span> = TRUE.<br><br>
+<strong>Success test:</strong> Helmet, Harness, and Shoes load as size-required items; Rope and non-sized items keep simple quantity.`
+      },
+      {
+        id: 17,
+        title: 'Feature spec: Customer and rental details form',
+        sub: 'Collect customer, date, staff, and deposit information.',
+        detail: `<strong>Required fields:</strong>
+<ul>
+  <li>Customer name, email, phone</li>
+  <li>Checkout date</li>
+  <li>Planned return date and time</li>
+  <li>Deposit type and amount or note</li>
+  <li>Checkout staff name</li>
+</ul>
+<strong>Form styling rule:</strong> use shared classes such as <span class="cmd">form-field</span> and <span class="cmd">form-control</span>. Do not style individual inputs by ID like <span class="cmd">#email</span> or <span class="cmd">#phone</span> unless there is a unique reason.<br>
+<strong>Privacy rule:</strong> do not require full passport number in version 1.<br><br>
+<strong>Success test:</strong> staff cannot submit an outdoor rental without customer details, deposit details, and staff name. All fields look consistent on mobile and desktop.`
+      },
+      {
+        id: 18,
+        title: 'Feature spec: Rental item quantities and totals',
+        sub: 'Calculate subtotal, discount, rental days, and total.',
+        detail: `<strong>Inputs:</strong> simple quantity for non-sized items; Size + Qty rows for size-required items; rental days; discount.<br>
+<strong>Rules:</strong> Helmet, Harness, and Shoes use size breakdown rows. The app calculates total quantity from those rows and saves <span class="cmd">size_breakdown</span>.<br><br>
+<strong>Success test:</strong> Helmet S:2 and M:3 calculates total qty 5 and prints/saves the size breakdown.`
+      },
+      {
+        id: 19,
+        title: 'Feature spec: Submit outdoor rental checkout',
+        sub: 'Save rental rows to CHECKOUT_LOG and create a Pending Return task.',
+        detail: `<strong>Data used:</strong> writes <span class="cmd">CHECKOUT_LOG</span>.<br>
+<strong>Rules:</strong> all rows share one <span class="cmd">checkout_id</span>; <span class="cmd">checkout_type</span> is Outdoor Rental; status starts as Pending Return. Size-required items save calculated <span class="cmd">taken_qty</span> and <span class="cmd">size_breakdown</span>.<br><br>
+<strong>Success test:</strong> after submitting, the outdoor rental appears in pending returns with customer and deposit details.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 6 — Printable Outdoor Rental Agreement',
+    items: [
+      {
+        id: 20,
+        title: 'Feature spec: Generate filled rental agreement',
+        sub: 'Create a print page with customer details, item table, totals, and disclaimer.',
+        detail: `<strong>Printed document must include:</strong>
+<ul>
+  <li>Customer name, email, phone</li>
+  <li>Checkout and planned return date/time</li>
+  <li>Deposit type and note</li>
+  <li>Checkout staff name</li>
+  <li>Rental item table</li>
+  <li>Size breakdown for Helmet, Harness, Shoes, and any other size-required item</li>
+  <li>Subtotal, discount, total</li>
+  <li>Agreement/disclaimer text</li>
+  <li>Customer signature and date lines</li>
+</ul>
+<strong>Implementation status:</strong> print page uses <span class="cmd">?id=checkout_id</span>, loads data with <span class="cmd">loadCheckoutById</span>, formats Google Sheets ISO dates for Thailand local display, and uses A4 print styling.<br>
+<strong>Layout rule:</strong> Customer Details and Rental Period sit side by side; Deposit is left and Pricing is right; all 13 rental items, terms, and signatures should fit on one A4 page.<br><br>
+<strong>Success test:</strong> staff clicks Print Rental Agreement and print preview shows filled details, all rental items, agreement clauses, and signature lines on one A4 page.`
+      },
+      {
+        id: 21,
+        title: 'Feature spec: Agreement disclaimer text',
+        sub: 'Include the important rental policy points on the printed page.',
+        detail: `<strong>Disclaimer should cover:</strong>
+<ul>
+  <li>Inherent risk of rock climbing</li>
+  <li>Customer skill and responsibility</li>
+  <li>No liability claim against Progression for use of rented gear</li>
+  <li>Customer inspected gear before taking it</li>
+  <li>Customer responsible for damaged, lost, or stolen gear</li>
+  <li>Late return may be charged as another rental day</li>
+  <li>Dirty gear may have cleaning or maintenance fee</li>
+  <li>Customer confirms they are at least 18</li>
+</ul>
+<strong>Success test:</strong> the printed agreement has enough policy text for the customer to sign acceptance.`
+      },
+      {
+        id: 22,
+        title: 'Feature spec: Confirm signature collected',
+        sub: 'Track whether staff printed the agreement and collected the customer signature.',
+        detail: `<strong>Data used:</strong> updates <span class="cmd">CHECKOUT_LOG</span> fields <span class="cmd">agreement_printed</span> and <span class="cmd">customer_signature_collected</span>.<br>
+<strong>Rules:</strong> if staff prints but does not confirm signature, the pending task should still show attention needed.<br><br>
+<strong>Success test:</strong> staff can mark signature collected after the customer signs the printed agreement.`
+      },
+    ]
+  },
+  {
+    phase: 'Phase 7 — FIT Course, Scouting, and Instructor Training Templates',
+    items: [
+      {
+        id: 23,
+        title: 'Data step: Collect FIT program course names',
+        sub: 'Gather checkout course names for rock climbing, outdoor caving, Scouting, and Instructor Training.',
+        detail: `<strong>Purpose:</strong> collect course/activity names before changing the spreadsheet or code.<br>
+<strong>Activity groups:</strong> FIT courses, Scouting, Instructor Training.<br>
+<strong>Rule:</strong> exclude indoor caving courses from Course Gear Check-Out because gym-used gear is handled by inspection only.<br>
+<strong>Output:</strong> clean source data for <span class="cmd">COURSE_MASTER</span>. Skip <span class="cmd">COURSE_GEAR_TEMPLATE</span> for now.<br><br>
+<strong>Success test:</strong> you have course names organized enough to create COURSE_MASTER rows.`
+      },
+      {
+        id: 24,
+        title: 'Data step: Create COURSE_MASTER rows',
+        sub: 'Convert the collected course names into COURSE_MASTER rows only.',
+        detail: `<strong>Data used:</strong> <span class="cmd">COURSE_MASTER</span>.<br>
+<strong>Rules:</strong> keep course names staff-friendly, use stable course IDs, set active TRUE, and skip gear templates for now.<br><br>
+<strong>Success test:</strong> COURSE_MASTER rows are ready to paste into Google Sheets.`
+      },
+      {
+        id: 25,
+        title: 'Future step: Gear templates and activity filter',
+        sub: 'Come back later when gear type and suggested quantity are ready.',
+        detail: `<strong>Now:</strong> do not build <span class="cmd">COURSE_GEAR_TEMPLATE</span> yet.<br>
+<strong>Later:</strong> add gear templates and decide whether to filter by FIT Course, Scouting, and Instructor Training.<br><br>
+<strong>Success test:</strong> this step is ready to return to once gear requirements are confirmed.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 8 — Gear Return Workflows',
+    items: [
+      {
+        id: 26,
+        title: 'Feature spec: Pending return dashboard',
+        sub: 'Show unfinished return tasks.',
+        detail: `<strong>Data used:</strong> reads <span class="cmd">CHECKOUT_LOG</span>.<br>
+<strong>Statuses shown:</strong> Pending Return and Overdue.<br>
+<strong>Task types shown:</strong> Course and Outdoor Rental.<br><br>
+<strong>Success test:</strong> staff can open a course task or outdoor rental task and see the original gear list.`
+      },
+      {
+        id: 27,
+        title: 'Feature spec: Submit course gear return',
+        sub: 'Record returned quantities and close a course checkout task.',
+        detail: `<strong>Data used:</strong> writes <span class="cmd">RETURN_LOG</span> and updates <span class="cmd">CHECKOUT_LOG</span>.<br>
+<strong>Rules:</strong> matching quantities become Completed; missing or damaged items become Completed with Issue.<br><br>
+<strong>Success test:</strong> returned task disappears from pending list and status updates correctly.`
+      },
+      {
+        id: 28,
+        title: 'Feature spec: Submit outdoor rental return',
+        sub: 'Record rental return, charges, deposit return, and final amount due.',
+        detail: `<strong>Outdoor rental return fields:</strong>
+<ul>
+  <li>Return staff name</li>
+  <li>Actual return date and time</li>
+  <li>Late return</li>
+  <li>Extra day charge</li>
+  <li>Dirty condition charge</li>
+  <li>Damage or loss charge</li>
+  <li>Deposit returned</li>
+  <li>Deposit return note</li>
+  <li>Final amount due</li>
+</ul>
+<strong>Success test:</strong> outdoor rental return saves charges and deposit details into RETURN_LOG.`
+      },
+      {
+        id: 29,
+        title: 'Feature spec: Overdue returns',
+        sub: 'Mark open tasks overdue after the expected return date has passed.',
+        detail: `<strong>Rule:</strong> if expected return date is before today and status is Pending Return, show Overdue.<br>
+<strong>Course fallback:</strong> if no planned return date exists, use checkout date. The course_time dropdown is a session label, not a clock-based overdue rule in version 1.<br><br>
+<strong>Success test:</strong> yesterday’s unreturned course or outdoor rental appears as Overdue.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 9 — Slack Weekly Report',
+    items: [
+      {
+        id: 30,
+        title: 'Feature spec: Build weekly report text',
+        sub: 'Summarize course usage, outdoor rental usage, returns, inspections, and retired gear.',
+        detail: `<strong>Data used:</strong> reads checkout, return, inspection, and retired logs.<br>
+<strong>Report must include:</strong> course gear usage, outdoor rental usage, return status counts, inspection completion, retired gear, and attention needed.<br><br>
+<strong>Success test:</strong> report text is readable before sending to Slack.`
+      },
+      {
+        id: 31,
+        title: 'Feature spec: Slack Incoming Webhook',
+        sub: 'Send Friday report to #team-ops-vert.',
+        detail: `<strong>Ask Claude for:</strong> <span class="cmd">Slack.gs</span> and setup instructions.<br>
+<strong>Important:</strong> store the webhook URL in Apps Script Properties, not directly in code.<br><br>
+<strong>Success test:</strong> test function sends one sample report to Slack.`
+      },
+      {
+        id: 32,
+        title: 'Feature spec: Friday trigger and report log',
+        sub: 'Send automatically and save a copy in WEEKLY_REPORT_LOG.',
+        detail: `<strong>Data used:</strong> writes <span class="cmd">WEEKLY_REPORT_LOG</span>.<br>
+<strong>Success test:</strong> trigger exists, test run logs report_text, slack_sent, and sent_at.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 10 — GitHub Pages And Staff Testing',
+    items: [
+      {
+        id: 33,
+        title: 'Deploy frontend with GitHub Pages',
+        sub: 'Publish the HTML/CSS/JS apps.',
+        detail: `<strong>Frontend only:</strong> GitHub Pages hosts <span class="cmd">index.html</span>, <span class="cmd">gear-inspection/</span>, <span class="cmd">gear-checkout-return/</span>, and <span class="cmd">print/</span>.<br>
+<strong>Success test:</strong> app opens on a phone using a public GitHub Pages URL.`
+      },
+      {
+        id: 34,
+        title: 'Run staff workflow tests',
+        sub: 'Test the system like a real shift.',
+        detail: `<strong>Test these flows:</strong>
+<ul>
+  <li>Normal inspection</li>
+  <li>Inspection with missing item</li>
+  <li>Inspection with retired gear</li>
+  <li>Normal checkout and return</li>
+  <li>Return with issue</li>
+  <li>Outdoor rental checkout</li>
+  <li>Printable rental agreement</li>
+  <li>Outdoor rental return with deposit handling</li>
+  <li>Overdue checkout</li>
+  <li>Weekly Slack report test</li>
+</ul>
+<strong>Success test:</strong> staff can complete each flow on mobile without explanation beyond a few minutes.`
+      },
+      {
+        id: 35,
+        title: 'Write the staff instruction sheet',
+        sub: 'Short daily-use guide, not technical documentation.',
+        detail: `<strong>Keep it practical:</strong>
+<ul>
+  <li>How to inspect gear</li>
+  <li>How to check out gear</li>
+  <li>How to process an outdoor rental</li>
+  <li>How to print the rental agreement and collect signature</li>
+  <li>How to return gear</li>
+  <li>How to handle deposits, dirty gear, late returns, and damage/loss charges</li>
+  <li>What to do if gear is missing, damaged, or retired</li>
+  <li>Who to contact if the app fails</li>
+</ul>
+<strong>Success test:</strong> a new staff member can understand the system in under 5 minutes.`
+      }
+    ]
+  }
+];
+
+const TOTAL = STEPS.reduce((total, phase) => total + phase.items.length, 0);
+let done = new Set();
+let openStep = null;
+
+try {
+  JSON.parse(localStorage.getItem('pv_tracker_done') || '[]').forEach(id => done.add(id));
+} catch (error) {}
+
+function save() {
+  try {
+    localStorage.setItem('pv_tracker_done', JSON.stringify([...done]));
+  } catch (error) {}
+}
+
+function currentPhase() {
+  for (let i = 0; i < STEPS.length; i++) {
+    for (const item of STEPS[i].items) {
+      if (!done.has(item.id)) return i + 1;
+    }
+  }
+  return STEPS.length;
+}
+
+function updateStats() {
+  const complete = done.size;
+  const pct = Math.round((complete / TOTAL) * 100);
+  document.getElementById('stat-done').textContent = complete;
+  document.getElementById('stat-left').textContent = TOTAL - complete;
+  document.getElementById('stat-pct').textContent = pct + '%';
+  document.getElementById('stat-phase').textContent = currentPhase();
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+function render() {
+  const container = document.getElementById('steps');
+  container.innerHTML = '';
+
+  let firstUndone = null;
+  STEPS.forEach(phase => {
+    phase.items.forEach(item => {
+      if (firstUndone === null && !done.has(item.id)) firstUndone = item.id;
+    });
+  });
+
+  STEPS.forEach(phase => {
+    const label = document.createElement('div');
+    label.className = 'phase-label';
+    label.textContent = phase.phase;
+    container.appendChild(label);
+
+    phase.items.forEach(item => {
+      const isDone = done.has(item.id);
+      const isOpen = openStep === item.id;
+      const isCurrent = !isDone && item.id === firstUndone;
+
+      const row = document.createElement('div');
+      row.className = 'step' + (isDone ? ' done' : '') + (isOpen ? ' active' : '');
+      row.innerHTML = `
+        <div class="step-check">${isDone ? '✓' : item.id}</div>
+        <div class="step-body">
+          <div class="step-title">${item.title}</div>
+          <div class="step-sub">${item.sub}</div>
+        </div>
+        <span class="badge ${isDone ? 'done' : isCurrent ? 'now' : 'soon'}">${isDone ? 'done' : isCurrent ? 'do this now' : 'next'}</span>
+      `;
+      row.addEventListener('click', () => {
+        openStep = isOpen ? null : item.id;
+        render();
+      });
+      container.appendChild(row);
+
+      if (isOpen) {
+        const detail = document.createElement('div');
+        detail.className = 'detail';
+        detail.innerHTML = item.detail;
+
+        if (PROMPTS[item.id]) {
+          const promptBox = document.createElement('div');
+          promptBox.className = 'prompt-box';
+
+          const promptLabel = document.createElement('div');
+          promptLabel.className = 'prompt-label';
+          promptLabel.textContent = 'Ready-to-copy Claude prompt';
+
+          const promptText = document.createElement('pre');
+          promptText.textContent = PROMPTS[item.id];
+
+          const copyButton = document.createElement('button');
+          copyButton.type = 'button';
+          copyButton.textContent = 'Copy prompt';
+          copyButton.addEventListener('click', event => {
+            event.stopPropagation();
+            copyPrompt(PROMPTS[item.id], copyButton);
+          });
+
+          promptBox.appendChild(promptLabel);
+          promptBox.appendChild(promptText);
+          promptBox.appendChild(copyButton);
+          detail.appendChild(promptBox);
+        }
+
+        const buttons = document.createElement('div');
+        buttons.className = 'btn-row';
+
+        if (isDone) {
+          const undo = document.createElement('button');
+          undo.className = 'danger';
+          undo.textContent = 'Undo';
+          undo.addEventListener('click', event => {
+            event.stopPropagation();
+            done.delete(item.id);
+            save();
+            render();
+          });
+          buttons.appendChild(undo);
+        } else {
+          const mark = document.createElement('button');
+          mark.className = 'primary';
+          mark.textContent = 'Mark step ' + item.id + ' done';
+          mark.addEventListener('click', event => {
+            event.stopPropagation();
+            done.add(item.id);
+            openStep = null;
+            save();
+            render();
+          });
+          buttons.appendChild(mark);
+        }
+
+        detail.appendChild(buttons);
+        container.appendChild(detail);
+      }
+    });
+  });
+
+  updateStats();
+}
+
+async function copyPrompt(text, button) {
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = 'Copied';
+    setTimeout(() => {
+      button.textContent = 'Copy prompt';
+    }, 1400);
+  } catch (error) {
+    button.textContent = 'Select text above';
+  }
+}
+
+render();
+</script>
+</body>
+</html>
