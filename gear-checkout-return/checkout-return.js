@@ -93,6 +93,7 @@ var selectedCourseName = ""; // Name of selected course
 var currentRentalItems = []; // Rental items from OUTDOOR_RENTAL_MASTER
 var lastRentalCheckoutId = ""; // Last submitted rental checkout_id
 var pendingReturnGroups = []; // Grouped pending return tasks
+var currentReturnGroup = null; // Pending return task currently open in detail view
 
 
 // ============================================================
@@ -1252,6 +1253,7 @@ function openReturnDetail(groupIndex) {
   var g = pendingReturnGroups[groupIndex];
   if (!g) return;
 
+  currentReturnGroup = g;
   stepPendingReturns.classList.add("hidden");
   stepReturnDetail.classList.remove("hidden");
 
@@ -1286,25 +1288,272 @@ function openReturnDetail(groupIndex) {
   hHtml += '</div>';
   returnDetailHeader.innerHTML = hHtml;
 
-  // Items table
-  var iHtml = '<div class="detail-card">';
-  iHtml += '<table class="gear-table">';
-  iHtml += '<thead><tr><th>Gear</th><th>Size</th><th>Qty</th></tr></thead>';
-  iHtml += '<tbody>';
+  var iHtml = "";
+
+  if (g.checkout_type === "Course") {
+    iHtml = renderCourseReturnForm(g);
+  } else {
+    iHtml = renderReadOnlyReturnItems(g);
+  }
+
+  returnDetailItems.innerHTML = iHtml;
+
+  if (g.checkout_type === "Course") {
+    attachCourseReturnListeners();
+    validateCourseReturn();
+  }
+
+  window.scrollTo(0, 0);
+}
+
+
+// ============================================================
+// renderReadOnlyReturnItems — shows original items for rentals
+// Outdoor Rental return is a separate future step.
+// ============================================================
+
+function renderReadOnlyReturnItems(g) {
+  var html = '<div class="detail-card">';
+  html += '<table class="gear-table">';
+  html += '<thead><tr><th>Gear</th><th>Size</th><th>Qty</th></tr></thead>';
+  html += '<tbody>';
 
   for (var i = 0; i < g.items.length; i++) {
     var item = g.items[i];
-    iHtml += '<tr>';
-    iHtml += '<td>' + escapeHtml(item.gear_name) + '</td>';
-    iHtml += '<td>' + escapeHtml(item.size || "—") + '</td>';
-    iHtml += '<td>' + item.taken_qty + '</td>';
-    iHtml += '</tr>';
+    html += '<tr>';
+    html += '<td>' + escapeHtml(item.gear_name) + '</td>';
+    html += '<td>' + escapeHtml(item.size || item.size_breakdown || "—") + '</td>';
+    html += '<td>' + item.taken_qty + '</td>';
+    html += '</tr>';
   }
 
-  iHtml += '</tbody></table>';
-  iHtml += '</div>';
-  returnDetailItems.innerHTML = iHtml;
+  html += '</tbody></table>';
+  html += '</div>';
+  return html;
+}
 
+
+// ============================================================
+// renderCourseReturnForm — builds course return inputs
+// ============================================================
+
+function renderCourseReturnForm(g) {
+  var html = '<div class="detail-card">';
+  html += '<div class="return-form-header">';
+  html += '  <div>';
+  html += '    <h3>Return Course Gear</h3>';
+  html += '    <p>Enter what came back. Matching quantities close the task as Completed.</p>';
+  html += '  </div>';
+  html += '</div>';
+
+  for (var i = 0; i < g.items.length; i++) {
+    var item = g.items[i];
+    var takenQty = Number(item.taken_qty) || 0;
+
+    html += '<div class="course-return-item" data-row="' + i + '">';
+    html += '  <div class="course-return-main">';
+    html += '    <div>';
+    html += '      <div class="course-return-name">' + escapeHtml(item.gear_name) + '</div>';
+    html += '      <div class="course-return-meta">Taken: ' + takenQty + '</div>';
+    html += '    </div>';
+    html += '    <div class="course-return-qty">';
+    html += '      <label for="return-qty-' + i + '">Returned</label>';
+    html += '      <input type="number" id="return-qty-' + i + '" class="return-qty-input"';
+    html += '        value="' + takenQty + '" min="0" max="' + takenQty + '" inputmode="numeric" data-row="' + i + '" />';
+    html += '    </div>';
+    html += '  </div>';
+    html += '  <div class="course-return-status" id="return-status-' + i + '">Same amount: Yes</div>';
+    html += '</div>';
+  }
+
+  html += '<div class="form-group">';
+  html += '  <label for="course-return-issue">Issue Detail</label>';
+  html += '  <textarea id="course-return-issue" class="return-textarea" placeholder="Required if anything is missing or damaged"></textarea>';
+  html += '</div>';
+
+  html += '<div class="form-group">';
+  html += '  <label for="course-return-note">Return Notes</label>';
+  html += '  <textarea id="course-return-note" class="return-textarea" placeholder="Optional notes"></textarea>';
+  html += '</div>';
+
+  html += '<div id="course-return-validation"></div>';
+  html += '<button id="course-return-submit" class="btn btn-primary btn-full" type="button">Submit Course Return</button>';
+  html += '</div>';
+
+  return html;
+}
+
+
+// ============================================================
+// attachCourseReturnListeners — watches course return fields
+// ============================================================
+
+function attachCourseReturnListeners() {
+  var qtyInputs = returnDetailItems.querySelectorAll(".return-qty-input");
+  qtyInputs.forEach(function(input) {
+    input.addEventListener("input", function() {
+      validateCourseReturn();
+    });
+  });
+
+  var issueEl = document.getElementById("course-return-issue");
+  if (issueEl) {
+    issueEl.addEventListener("input", function() {
+      validateCourseReturn();
+    });
+  }
+
+  var submitBtn = document.getElementById("course-return-submit");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", function() {
+      submitCourseReturn();
+    });
+  }
+}
+
+
+// ============================================================
+// validateCourseReturn — validates Step 27 course return rules
+// ============================================================
+
+function validateCourseReturn() {
+  if (!currentReturnGroup || currentReturnGroup.checkout_type !== "Course") return false;
+
+  var errors = [];
+  var hasIssue = false;
+
+  for (var i = 0; i < currentReturnGroup.items.length; i++) {
+    var item = currentReturnGroup.items[i];
+    var takenQty = Number(item.taken_qty) || 0;
+    var input = document.getElementById("return-qty-" + i);
+    var returnedQty = input ? parseInt(input.value, 10) : NaN;
+    var statusEl = document.getElementById("return-status-" + i);
+
+    if (isNaN(returnedQty) || returnedQty < 0) {
+      errors.push("Returned quantities must be zero or more.");
+      returnedQty = 0;
+    }
+
+    if (returnedQty > takenQty) {
+      errors.push("Returned quantity cannot be greater than taken quantity.");
+    }
+
+    if (statusEl) {
+      if (returnedQty === takenQty) {
+        statusEl.textContent = "Same amount: Yes";
+        statusEl.className = "course-return-status ok";
+      } else {
+        hasIssue = true;
+        statusEl.textContent = "Same amount: No";
+        statusEl.className = "course-return-status issue";
+      }
+    }
+  }
+
+  var issueEl = document.getElementById("course-return-issue");
+  var issueDetail = issueEl ? issueEl.value.trim() : "";
+
+  if (hasIssue && issueDetail === "") {
+    errors.push("Issue detail is required when a returned quantity does not match.");
+  }
+
+  var validationEl = document.getElementById("course-return-validation");
+  var submitBtn = document.getElementById("course-return-submit");
+
+  if (errors.length > 0) {
+    if (validationEl) {
+      validationEl.innerHTML = '<div class="summary-error">⚠ ' + escapeHtml(errors[0]) + '</div>';
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    return false;
+  }
+
+  if (validationEl) {
+    validationEl.innerHTML = hasIssue
+      ? '<div class="summary-info">This return will be saved as Completed with Issue.</div>'
+      : '<div class="summary-ok">✓ All quantities match. This return will be saved as Completed.</div>';
+  }
+  if (submitBtn) submitBtn.disabled = false;
+  return true;
+}
+
+
+// ============================================================
+// submitCourseReturn — saves course return rows and closes task
+// ============================================================
+
+async function submitCourseReturn() {
+  if (!validateCourseReturn()) return;
+
+  var submitBtn = document.getElementById("course-return-submit");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting…";
+  }
+
+  var issueEl = document.getElementById("course-return-issue");
+  var noteEl = document.getElementById("course-return-note");
+  var issueDetail = issueEl ? issueEl.value.trim() : "";
+  var returnNote = noteEl ? noteEl.value.trim() : "";
+  var hasIssue = false;
+  var rows = [];
+
+  for (var i = 0; i < currentReturnGroup.items.length; i++) {
+    var item = currentReturnGroup.items[i];
+    var takenQty = Number(item.taken_qty) || 0;
+    var input = document.getElementById("return-qty-" + i);
+    var returnedQty = input ? parseInt(input.value, 10) : 0;
+    if (isNaN(returnedQty) || returnedQty < 0) returnedQty = 0;
+
+    var sameAmount = returnedQty === takenQty;
+    if (!sameAmount) hasIssue = true;
+
+    rows.push({
+      gear_type_id:  item.gear_type_id || "",
+      gear_name:     item.gear_name,
+      taken_qty:     takenQty,
+      returned_qty:  returnedQty,
+      same_amount:   sameAmount ? "Yes" : "No",
+      issue_detail:  sameAmount ? "" : issueDetail,
+      return_note:   returnNote
+    });
+  }
+
+  var today = new Date().toISOString().split("T")[0];
+  var returnStatus = hasIssue ? "Completed with Issue" : "Completed";
+
+  var payload = {
+    checkout_id:       currentReturnGroup.checkout_id,
+    checkoutId:        currentReturnGroup.checkout_id,
+    checkout_type:     "Course",
+    date_returned:     today,
+    actual_return_date: today,
+    guide_name:        currentReturnGroup.guide_name,
+    course_id:         currentReturnGroup.course_id,
+    course_name:       currentReturnGroup.course_name,
+    issue_detail:      issueDetail,
+    return_note:       returnNote,
+    return_status:     returnStatus,
+    status:            returnStatus,
+    rows:              rows
+  };
+
+  var result = await callAPI("submitReturn", payload, "POST");
+
+  if (!result.success) {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Course Return";
+    }
+    alert("Error: " + (result.error || "Unknown error"));
+    return;
+  }
+
+  stepReturnDetail.classList.add("hidden");
+  stepPendingReturns.classList.remove("hidden");
+  pendingReturnsContainer.innerHTML =
+    '<div class="status-message loading">Course return saved. Refreshing pending returns…</div>';
+  loadPendingReturns();
   window.scrollTo(0, 0);
 }
 
