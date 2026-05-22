@@ -86,7 +86,7 @@ Small Locking Carabiner | size_required FALSE | 50
 Large Locking Carabiner | size_required FALSE | 50
 Quickdraw Set (15 Draws) | size_required FALSE | 200
 60 cm Nylon Runner | size_required FALSE | 50
-100 cm Nylon Runner | size_required FALSE | 50
+120cm Nylon Runner | size_required FALSE | 50
 Crazy Horse Guidebook | size_required FALSE | 100
 ```
 
@@ -238,4 +238,3 @@ Avoid unless intentionally maintaining records:
 - Renaming headers
 - Deleting log rows
 - Moving headers away from row 1
-

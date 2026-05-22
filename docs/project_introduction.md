@@ -378,7 +378,7 @@ Small Locking Carabiner | size_required FALSE | 50
 Large Locking Carabiner | size_required FALSE | 50
 Quickdraw Set (15 Draws) | size_required FALSE | 200
 60 cm Nylon Runner | size_required FALSE | 50
-100 cm Nylon Runner | size_required FALSE | 50
+120cm Nylon Runner | size_required FALSE | 50
 Crazy Horse Guidebook | size_required FALSE | 100
 ```
 
@@ -827,7 +827,6 @@ Agreement/disclaimer should include:
 - Damaged, lost, or stolen equipment may be charged at current replacement price.
 - Equipment must be returned by the agreed return date and time.
 - Late returns may be charged as an additional rental day.
-- Dirty equipment or equipment requiring serious maintenance may be charged an additional cleaning/maintenance fee.
 - Customer confirms they are at least 18 years old.
 
 Signature section:
@@ -877,7 +876,6 @@ Actual return date
 Actual return time
 Late return
 Extra day charge
-Dirty condition charge
 Damage or loss charge
 Deposit returned
 Deposit return note
@@ -888,7 +886,7 @@ Return note
 Rules:
 
 - If all returned quantities match taken quantities, mark `Completed`.
-- If anything is missing, damaged, dirty, late, or charged, mark `Completed with Issue`.
+- If anything is missing, damaged, lost, late, or charged, mark `Completed with Issue`.
 - If task is still open after checkout date/planned return date, mark `Overdue`.
 
 ## Weekly Slack Report

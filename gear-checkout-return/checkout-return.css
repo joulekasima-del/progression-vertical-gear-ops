@@ -938,8 +938,48 @@
   text-transform: uppercase;
 }
 
+.return-field-note {
+  margin-top: 6px;
+  color: var(--text-light);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .rental-return-item {
   background: #fffdf8;
+}
+
+.rental-condition-grid,
+.rental-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.rental-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rental-summary-box {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--surface);
+}
+
+.rental-summary-box span {
+  display: block;
+  color: var(--text-light);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.rental-summary-box strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 1rem;
 }
 
 #course-return-submit:disabled,
@@ -952,6 +992,11 @@
   .return-form-grid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+
+  .rental-condition-grid,
+  .rental-summary-grid {
+    grid-template-columns: 1fr;
   }
 
   .course-return-main {

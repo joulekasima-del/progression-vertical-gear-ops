@@ -143,7 +143,8 @@ PM-Half-Day
 
 - Enter return staff name and actual return date/time.
 - Enter returned quantities.
-- Record late, dirty, damage/loss charges if needed.
+- Confirm late return charge auto-fills from actual return date.
+- Record damage/loss charges if needed.
 - Record deposit returned and note.
 - Confirm `RETURN_LOG` saves charge/deposit details.
 - Confirm checkout status updates.
@@ -176,4 +177,3 @@ PM-Half-Day
 - Create a new deployment version.
 - Confirm deployed Web App URL still works.
 - Re-test affected frontend action.
-

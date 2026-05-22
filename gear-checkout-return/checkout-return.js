@@ -95,6 +95,24 @@ var lastRentalCheckoutId = ""; // Last submitted rental checkout_id
 var pendingReturnGroups = []; // Grouped pending return tasks
 var currentReturnGroup = null; // Pending return task currently open in detail view
 
+var RENTAL_DAMAGE_POLICY = {
+  "Helmet": { label: "Half Dome Helmet", price: 2699 },
+  "Harness": { label: "Momentum 4S Harness", price: 3799 },
+  "Shoes": { label: "Rover", price: 3299 },
+  "Rope (60 M)": { label: "10MM XEROS UIAA Dry Rope", price: 13999 },
+  "Chalk Bag and Chalk": { label: "Progression Chalk Bag 2025", price: 599 },
+  "ATC and Locking Carabiner": { label: "Big Air XP Package", price: 1599 },
+  "Gri Gri and Locking Carabiner": { label: "Gri Gri PETZL and Locking Carabiner", price: 4599 },
+  "Gri Gri PETZl and Locking Carabiner": { label: "Gri Gri PETZL and Locking Carabiner", price: 4599 },
+  "Small Locking Carabiner": { label: "HotForge Screwgate Carabiner", price: 599 },
+  "Large Locking Carabiner": { label: "Rocklock Screwgate Carabiner", price: 659 },
+  "Quickdraw Set (15 Draws)": { label: "HotForge Quickdraw", price: 999, perDraw: true },
+  "60 cm Nylon Runner": { label: "60cm Nylon Runner", price: 399 },
+  "60cm Nylon Runner": { label: "60cm Nylon Runner", price: 399 },
+  "120cm Nylon Runner": { label: "120cm Nylon Runner", price: 499 },
+  "Crazy Horse Guidebook": { label: "Crazy Horse Guidebook", price: 495 }
+};
+
 
 // ============================================================
 // INIT — set today's date and current time
@@ -1338,6 +1356,10 @@ function renderOutdoorRentalReturnForm(g) {
 
   html += '<div class="return-form-grid">';
   html += '  <div class="form-group">';
+  html += '    <label for="rental-planned-return-date">Planned Return Date</label>';
+  html += '    <input type="date" id="rental-planned-return-date" class="return-text-input" value="' + escapeHtml(normalizeDateValue(g.planned_return_date)) + '" readonly />';
+  html += '  </div>';
+  html += '  <div class="form-group">';
   html += '    <label for="rental-actual-return-date">Actual Return Date <span class="required">*</span></label>';
   html += '    <input type="date" id="rental-actual-return-date" class="return-text-input" value="' + today + '" />';
   html += '  </div>';
@@ -1350,6 +1372,11 @@ function renderOutdoorRentalReturnForm(g) {
   for (var i = 0; i < g.items.length; i++) {
     var item = g.items[i];
     var takenQty = Number(item.taken_qty) || 0;
+    var policy = getRentalDamagePolicy(item.gear_name);
+    var policyText = policy
+      ? policy.label + " - " + formatTHB(policy.price) + (policy.perDraw ? " per draw" : "")
+      : "No policy price found for this item.";
+    var isQuickdraw = policy && policy.perDraw;
 
     html += '<div class="course-return-item rental-return-item" data-row="' + i + '">';
     html += '  <div class="course-return-main">';
@@ -1367,42 +1394,83 @@ function renderOutdoorRentalReturnForm(g) {
     html += '    </div>';
     html += '  </div>';
     html += '  <div class="course-return-status" id="rental-return-status-' + i + '">Same amount: Yes</div>';
+    html += '  <div class="rental-condition-grid">';
+    html += '    <div class="form-group">';
+    html += '      <label for="rental-condition-' + i + '">Condition</label>';
+    html += '      <select id="rental-condition-' + i + '" class="return-select rental-condition" data-row="' + i + '">';
+    html += '        <option value="Good" selected>Good</option>';
+    html += '        <option value="Damaged">Damaged</option>';
+    html += '        <option value="Lost">Lost</option>';
+    html += '      </select>';
+    html += '    </div>';
+    html += '    <div class="form-group">';
+    if (isQuickdraw) {
+      html += '      <label for="rental-affected-qty-' + i + '">Damaged/Lost Draws</label>';
+      html += '      <input type="number" id="rental-affected-qty-' + i + '" class="return-text-input rental-affected-qty" value="0" min="0" max="' + (takenQty * 15) + '" inputmode="numeric" data-row="' + i + '" />';
+    } else {
+      html += '      <label for="rental-affected-qty-' + i + '">Damaged/Lost Qty</label>';
+      html += '      <input type="number" id="rental-affected-qty-' + i + '" class="return-text-input rental-affected-qty" value="0" min="0" max="' + takenQty + '" inputmode="numeric" data-row="' + i + '" />';
+    }
+    html += '      <div class="return-field-note">' + escapeHtml(policyText) + '</div>';
+    html += '    </div>';
+    html += '  </div>';
     html += '</div>';
   }
 
-  html += '<div class="return-form-section-title">Charges</div>';
-  html += '<div class="return-form-grid">';
-  html += '  <div class="form-group">';
-  html += '    <label for="rental-late-return">Late Return</label>';
-  html += '    <select id="rental-late-return" class="return-select">';
-  html += '      <option value="No" selected>No</option>';
-  html += '      <option value="Yes">Yes</option>';
-  html += '    </select>';
+  html += '<div class="return-form-section-title">Late Return</div>';
+  html += '<div class="rental-summary-grid">';
+  html += '  <div class="rental-summary-box">';
+  html += '    <span>Daily Rate of Rental Items Taken</span>';
+  html += '    <strong id="rental-daily-total-display">0 THB</strong>';
   html += '  </div>';
-  html += '  <div class="form-group">';
-  html += '    <label for="rental-extra-day-charge">Extra Day Charge</label>';
-  html += '    <input type="number" id="rental-extra-day-charge" class="return-text-input rental-charge-input" value="0" min="0" inputmode="numeric" />';
+  html += '  <div class="rental-summary-box">';
+  html += '    <span>Extra Days</span>';
+  html += '    <strong id="rental-extra-days-display">0 Days</strong>';
   html += '  </div>';
-  html += '  <div class="form-group">';
-  html += '    <label for="rental-dirty-charge">Dirty Condition Charge</label>';
-  html += '    <input type="number" id="rental-dirty-charge" class="return-text-input rental-charge-input" value="0" min="0" inputmode="numeric" />';
+  html += '  <div class="rental-summary-box">';
+  html += '    <span>Extra Charge</span>';
+  html += '    <strong id="rental-extra-charge-display">0 THB</strong>';
   html += '  </div>';
-  html += '  <div class="form-group">';
-  html += '    <label for="rental-damage-charge">Damage/Loss Charge</label>';
-  html += '    <input type="number" id="rental-damage-charge" class="return-text-input rental-charge-input" value="0" min="0" inputmode="numeric" />';
-  html += '  </div>';
+  html += '</div>';
+  html += '<input type="hidden" id="rental-extra-day-charge" value="0" />';
+  html += '<input type="hidden" id="rental-late-return" value="No" />';
+
+  html += '<div class="return-form-section-title">Damage/Loss Charge</div>';
+  html += '<div class="form-group">';
+  html += '  <label for="rental-damage-charge">Damage/Loss Charge</label>';
+  html += '  <input type="number" id="rental-damage-charge" class="return-text-input rental-charge-input" value="0" min="0" readonly />';
+  html += '  <div id="rental-damage-charge-note" class="return-field-note">Calculated from damaged, lost, or missing equipment.</div>';
   html += '</div>';
 
   html += '<div class="return-form-section-title">Deposit</div>';
+  html += '<div class="return-field-note">Deposit type: ' + escapeHtml(g.deposit_type || "Not recorded") + '</div>';
   html += '<div class="return-form-grid">';
-  html += '  <div class="form-group">';
-  html += '    <label for="rental-deposit-returned">Deposit Returned <span class="required">*</span></label>';
-  html += '    <select id="rental-deposit-returned" class="return-select">';
-  html += '      <option value="Yes" selected>Yes</option>';
-  html += '      <option value="Partial">Partial</option>';
-  html += '      <option value="No">No</option>';
-  html += '    </select>';
-  html += '  </div>';
+  if (String(g.deposit_type || "").toLowerCase() === "passport") {
+    html += '  <div class="form-group">';
+    html += '    <label for="rental-deposit-returned">Passport Returned <span class="required">*</span></label>';
+    html += '    <select id="rental-deposit-returned" class="return-select">';
+    html += '      <option value="Yes" selected>Yes</option>';
+    html += '      <option value="No">No</option>';
+    html += '    </select>';
+    html += '  </div>';
+    html += '  <div class="form-group">';
+    html += '    <label for="rental-deposit-amount-returned">Charge Collected</label>';
+    html += '    <input type="number" id="rental-deposit-amount-returned" class="return-text-input" value="0" min="0" inputmode="numeric" />';
+    html += '  </div>';
+  } else {
+    html += '  <div class="form-group">';
+    html += '    <label for="rental-deposit-returned">Deposit Returned <span class="required">*</span></label>';
+    html += '    <select id="rental-deposit-returned" class="return-select">';
+    html += '      <option value="Full" selected>Full</option>';
+    html += '      <option value="Partial">Partial</option>';
+    html += '      <option value="No">No</option>';
+    html += '    </select>';
+    html += '  </div>';
+    html += '  <div class="form-group">';
+    html += '    <label for="rental-deposit-amount-returned">Amount Returned</label>';
+    html += '    <input type="number" id="rental-deposit-amount-returned" class="return-text-input" value="' + (Number(g.deposit_amount) || 0) + '" min="0" inputmode="numeric" />';
+    html += '  </div>';
+  }
   html += '  <div class="form-group">';
   html += '    <label for="rental-final-amount-due">Final Amount Due</label>';
   html += '    <input type="number" id="rental-final-amount-due" class="return-text-input" value="0" min="0" readonly />';
@@ -1411,7 +1479,7 @@ function renderOutdoorRentalReturnForm(g) {
 
   html += '<div class="form-group">';
   html += '  <label for="rental-deposit-return-note">Deposit Return Note</label>';
-  html += '  <textarea id="rental-deposit-return-note" class="return-textarea" placeholder="Required if deposit was not fully returned"></textarea>';
+  html += '  <textarea id="rental-deposit-return-note" class="return-textarea" placeholder="Only needed if deposit/passport was not fully returned"></textarea>';
   html += '</div>';
 
   html += '<div class="form-group">';
@@ -1432,6 +1500,48 @@ function renderOutdoorRentalReturnForm(g) {
 
 
 // ============================================================
+// updateLateReturnCharge — auto-fills late return charge
+// ============================================================
+
+function updateLateReturnCharge() {
+  if (!currentReturnGroup || currentReturnGroup.checkout_type === "Course") return;
+
+  var actualDate = getFieldValue("rental-actual-return-date");
+  var plannedDate = normalizeDateValue(currentReturnGroup.planned_return_date);
+  var extraDays = getExtraReturnDays(plannedDate, actualDate);
+  var dailyTotal = getOutdoorRentalDailyTotal();
+  var charge = Math.max(extraDays * dailyTotal, 0);
+
+  var lateEl = document.getElementById("rental-late-return");
+  if (lateEl) lateEl.value = extraDays > 0 ? "Yes" : "No";
+
+  var chargeEl = document.getElementById("rental-extra-day-charge");
+  if (chargeEl) chargeEl.value = charge;
+
+  setTextContent("rental-daily-total-display", formatTHB(dailyTotal));
+  setTextContent("rental-extra-days-display", extraDays + (extraDays === 1 ? " Day" : " Days"));
+  setTextContent("rental-extra-charge-display", formatTHB(charge));
+
+  calculateOutdoorRentalReturnTotal();
+}
+
+function updateDamageLossCharge() {
+  var result = calculateDamageLossCharge();
+  var chargeEl = document.getElementById("rental-damage-charge");
+  if (chargeEl) chargeEl.value = result.total;
+
+  var noteEl = document.getElementById("rental-damage-charge-note");
+  if (noteEl) {
+    noteEl.textContent = result.details.length > 0
+      ? result.details.join("; ")
+      : "Calculated from damaged, lost, or missing equipment.";
+  }
+
+  calculateOutdoorRentalReturnTotal();
+}
+
+
+// ============================================================
 // attachOutdoorRentalReturnListeners — watches rental return form
 // ============================================================
 
@@ -1439,9 +1549,14 @@ function attachOutdoorRentalReturnListeners() {
   var watched = returnDetailItems.querySelectorAll("input, select, textarea");
   watched.forEach(function(el) {
     el.addEventListener("input", function() {
+      if (el.id === "rental-actual-return-date") updateLateReturnCharge();
+      if (isRentalDamageField(el)) updateDamageLossCharge();
       validateOutdoorRentalReturn();
     });
     el.addEventListener("change", function() {
+      if (el.id === "rental-actual-return-date") updateLateReturnCharge();
+      if (el.classList.contains("rental-condition")) ensureAffectedQtyForCondition(el);
+      if (isRentalDamageField(el)) updateDamageLossCharge();
       validateOutdoorRentalReturn();
     });
   });
@@ -1452,6 +1567,8 @@ function attachOutdoorRentalReturnListeners() {
       submitOutdoorRentalReturn();
     });
   }
+  updateLateReturnCharge();
+  updateDamageLossCharge();
 }
 
 
@@ -1461,9 +1578,8 @@ function attachOutdoorRentalReturnListeners() {
 
 function calculateOutdoorRentalReturnTotal() {
   var extra = getMoneyValue("rental-extra-day-charge");
-  var dirty = getMoneyValue("rental-dirty-charge");
   var damage = getMoneyValue("rental-damage-charge");
-  var total = Math.max(extra + dirty + damage, 0);
+  var total = Math.max(extra + damage, 0);
   var totalEl = document.getElementById("rental-final-amount-due");
   if (totalEl) totalEl.value = total;
   return total;
@@ -1487,6 +1603,7 @@ function validateOutdoorRentalReturn() {
   var issueEl = document.getElementById("rental-return-issue");
   var depositReturnedEl = document.getElementById("rental-deposit-returned");
   var depositNoteEl = document.getElementById("rental-deposit-return-note");
+  var isPassportDeposit = String(currentReturnGroup.deposit_type || "").toLowerCase() === "passport";
 
   if (!staffEl || staffEl.value.trim() === "") {
     errors.push("Return staff name is required.");
@@ -1506,6 +1623,10 @@ function validateOutdoorRentalReturn() {
     var input = document.getElementById("rental-return-qty-" + i);
     var returnedQty = input ? parseInt(input.value, 10) : NaN;
     var statusEl = document.getElementById("rental-return-status-" + i);
+    var condition = getFieldValue("rental-condition-" + i);
+    var affectedQty = parseInt(getFieldValue("rental-affected-qty-" + i), 10);
+    if (isNaN(affectedQty) || affectedQty < 0) affectedQty = 0;
+    var chargeQty = getRentalItemChargeQty(i, item, isNaN(returnedQty) ? 0 : returnedQty);
 
     if (isNaN(returnedQty) || returnedQty < 0) {
       errors.push("Returned quantities must be zero or more.");
@@ -1516,27 +1637,35 @@ function validateOutdoorRentalReturn() {
       errors.push("Returned quantity cannot be greater than taken quantity.");
     }
 
+    if (condition !== "Good" && affectedQty <= 0) {
+      errors.push("Enter damaged/lost quantity for any item marked damaged or lost.");
+    }
+
     if (statusEl) {
-      if (returnedQty === takenQty) {
+      if (returnedQty === takenQty && chargeQty === 0) {
         statusEl.textContent = "Same amount: Yes";
         statusEl.className = "course-return-status ok";
       } else {
         hasIssue = true;
         needsIssueDetail = true;
-        statusEl.textContent = "Same amount: No";
+        statusEl.textContent = chargeQty > 0
+          ? "Charge qty: " + chargeQty
+          : "Same amount: No";
         statusEl.className = "course-return-status issue";
       }
     }
   }
 
+  updateLateReturnCharge();
+  updateDamageLossCharge();
+
   var lateReturn = getFieldValue("rental-late-return");
   var extraCharge = getMoneyValue("rental-extra-day-charge");
-  var dirtyCharge = getMoneyValue("rental-dirty-charge");
   var damageCharge = getMoneyValue("rental-damage-charge");
   var finalAmount = calculateOutdoorRentalReturnTotal();
   var depositReturned = depositReturnedEl ? depositReturnedEl.value : "";
 
-  if (lateReturn === "Yes" || extraCharge > 0 || dirtyCharge > 0 || damageCharge > 0) {
+  if (lateReturn === "Yes" || extraCharge > 0 || damageCharge > 0) {
     hasIssue = true;
   }
 
@@ -1544,10 +1673,13 @@ function validateOutdoorRentalReturn() {
     needsIssueDetail = true;
   }
 
-  if (depositReturned !== "Yes") {
+  if ((isPassportDeposit && depositReturned !== "Yes") ||
+      (!isPassportDeposit && depositReturned !== "Full")) {
     hasIssue = true;
     if (!depositNoteEl || depositNoteEl.value.trim() === "") {
-      errors.push("Deposit return note is required if deposit was not fully returned.");
+      errors.push(isPassportDeposit
+        ? "Passport note is required if the passport was not returned."
+        : "Deposit return note is required if deposit was not fully returned.");
     }
   }
 
@@ -1595,6 +1727,13 @@ async function submitOutdoorRentalReturn() {
 
   var issueDetail = getFieldValue("rental-return-issue").trim();
   var returnNote = getFieldValue("rental-return-note").trim();
+  var damageLossSummary = buildDamageLossSummary();
+  var savedIssueDetail = issueDetail;
+  if (damageLossSummary) {
+    savedIssueDetail = savedIssueDetail
+      ? savedIssueDetail + " | Charges: " + damageLossSummary
+      : "Charges: " + damageLossSummary;
+  }
   var hasIssue = false;
   var rows = [];
 
@@ -1605,7 +1744,8 @@ async function submitOutdoorRentalReturn() {
     if (isNaN(returnedQty) || returnedQty < 0) returnedQty = 0;
 
     var sameAmount = returnedQty === takenQty;
-    if (!sameAmount) hasIssue = true;
+    var itemChargeQty = getRentalItemChargeQty(i, item, returnedQty);
+    if (!sameAmount || itemChargeQty > 0) hasIssue = true;
 
     rows.push({
       gear_type_id:  item.gear_type_id || "",
@@ -1613,19 +1753,20 @@ async function submitOutdoorRentalReturn() {
       taken_qty:     takenQty,
       returned_qty:  returnedQty,
       same_amount:   sameAmount ? "Yes" : "No",
-      issue_detail:  sameAmount ? "" : issueDetail,
+      issue_detail:  itemChargeQty > 0 || !sameAmount ? savedIssueDetail : "",
       return_note:   returnNote
     });
   }
 
   var lateReturn = getFieldValue("rental-late-return");
   var extraCharge = getMoneyValue("rental-extra-day-charge");
-  var dirtyCharge = getMoneyValue("rental-dirty-charge");
   var damageCharge = getMoneyValue("rental-damage-charge");
   var depositReturned = getFieldValue("rental-deposit-returned");
   var finalAmount = calculateOutdoorRentalReturnTotal();
 
-  if (lateReturn === "Yes" || extraCharge > 0 || dirtyCharge > 0 || damageCharge > 0 || depositReturned !== "Yes") {
+  if (lateReturn === "Yes" || extraCharge > 0 || damageCharge > 0 ||
+      (String(currentReturnGroup.deposit_type || "").toLowerCase() === "passport" && depositReturned !== "Yes") ||
+      (String(currentReturnGroup.deposit_type || "").toLowerCase() !== "passport" && depositReturned !== "Full")) {
     hasIssue = true;
   }
 
@@ -1640,16 +1781,17 @@ async function submitOutdoorRentalReturn() {
     actual_return_time:       getFieldValue("rental-actual-return-time"),
     return_staff_name:        getFieldValue("rental-return-staff").trim(),
     planned_return_date:      currentReturnGroup.planned_return_date || "",
-    issue_detail:             issueDetail,
+    issue_detail:             savedIssueDetail,
     return_note:              returnNote,
     return_status:            returnStatus,
     status:                   returnStatus,
     late_return:              lateReturn,
     extra_day_charge:         extraCharge,
-    dirty_condition_charge:   dirtyCharge,
+    dirty_condition_charge:   0,
     damage_or_loss_charge:    damageCharge,
     deposit_returned:         depositReturned,
     deposit_return_note:      getFieldValue("rental-deposit-return-note").trim(),
+    deposit_amount_returned:  getMoneyValue("rental-deposit-amount-returned"),
     final_amount_due:         finalAmount,
     rows:                     rows
   };
@@ -1686,6 +1828,126 @@ function getFieldValue(id) {
 function getMoneyValue(id) {
   var val = parseFloat(getFieldValue(id));
   return (!isNaN(val) && val > 0) ? val : 0;
+}
+
+function setTextContent(id, text) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+function formatTHB(amount) {
+  return (Number(amount) || 0).toLocaleString() + " THB";
+}
+
+function isRentalDamageField(el) {
+  return el && (
+    el.classList.contains("rental-return-qty") ||
+    el.classList.contains("rental-condition") ||
+    el.classList.contains("rental-affected-qty")
+  );
+}
+
+function ensureAffectedQtyForCondition(conditionEl) {
+  if (!conditionEl || conditionEl.value === "Good") return;
+  var rowIndex = conditionEl.getAttribute("data-row");
+  var qtyEl = document.getElementById("rental-affected-qty-" + rowIndex);
+  if (!qtyEl) return;
+  var currentQty = parseInt(qtyEl.value, 10);
+  if (isNaN(currentQty) || currentQty <= 0) qtyEl.value = 1;
+}
+
+function getRentalDamagePolicy(gearName) {
+  return RENTAL_DAMAGE_POLICY[gearName] || null;
+}
+
+function getRentalItemChargeQty(rowIndex, item, returnedQty) {
+  var policy = getRentalDamagePolicy(item.gear_name);
+  if (!policy) return 0;
+
+  var takenQty = Number(item.taken_qty) || 0;
+  var missingQty = Math.max(takenQty - returnedQty, 0);
+  var condition = getFieldValue("rental-condition-" + rowIndex);
+  var affectedQty = parseInt(getFieldValue("rental-affected-qty-" + rowIndex), 10);
+  if (isNaN(affectedQty) || affectedQty < 0) affectedQty = 0;
+
+  if (policy.perDraw) {
+    return (missingQty * 15) + affectedQty;
+  }
+
+  return missingQty + (condition === "Good" ? 0 : affectedQty);
+}
+
+function calculateDamageLossCharge() {
+  var result = { total: 0, details: [] };
+  if (!currentReturnGroup || !currentReturnGroup.items) return result;
+
+  for (var i = 0; i < currentReturnGroup.items.length; i++) {
+    var item = currentReturnGroup.items[i];
+    var policy = getRentalDamagePolicy(item.gear_name);
+    if (!policy) continue;
+
+    var takenQty = Number(item.taken_qty) || 0;
+    var returnedQty = parseInt(getFieldValue("rental-return-qty-" + i), 10);
+    if (isNaN(returnedQty) || returnedQty < 0) returnedQty = 0;
+
+    var chargeQty = getRentalItemChargeQty(i, item, returnedQty);
+    if (chargeQty <= 0) continue;
+
+    var charge = chargeQty * policy.price;
+    result.total += charge;
+    result.details.push(item.gear_name + ": " + chargeQty + " × " + formatTHB(policy.price));
+  }
+
+  return result;
+}
+
+function buildDamageLossSummary() {
+  if (!currentReturnGroup || !currentReturnGroup.items) return "";
+  var parts = [];
+
+  for (var i = 0; i < currentReturnGroup.items.length; i++) {
+    var item = currentReturnGroup.items[i];
+    var policy = getRentalDamagePolicy(item.gear_name);
+    if (!policy) continue;
+
+    var returnedQty = parseInt(getFieldValue("rental-return-qty-" + i), 10);
+    if (isNaN(returnedQty) || returnedQty < 0) returnedQty = 0;
+
+    var chargeQty = getRentalItemChargeQty(i, item, returnedQty);
+    if (chargeQty <= 0) continue;
+
+    var condition = getFieldValue("rental-condition-" + i);
+    parts.push(item.gear_name + " - " + condition + "/Missing qty: " + chargeQty);
+  }
+
+  return parts.join("; ");
+}
+
+function getOutdoorRentalDailyTotal() {
+  if (!currentReturnGroup || !currentReturnGroup.items) return 0;
+
+  var total = 0;
+  for (var i = 0; i < currentReturnGroup.items.length; i++) {
+    var item = currentReturnGroup.items[i];
+    var rate = Number(item.daily_rate) || 0;
+    var qty = Number(item.taken_qty) || 0;
+    total += rate * qty;
+  }
+  return total;
+}
+
+function getExtraReturnDays(plannedDate, actualDate) {
+  if (!plannedDate || !actualDate) return 0;
+  var planned = new Date(plannedDate + "T00:00:00");
+  var actual = new Date(actualDate + "T00:00:00");
+  if (isNaN(planned.getTime()) || isNaN(actual.getTime()) || actual <= planned) return 0;
+  return Math.round((actual - planned) / (1000 * 60 * 60 * 24));
+}
+
+function normalizeDateValue(value) {
+  if (!value) return "";
+  var str = String(value);
+  return str.length >= 10 ? str.slice(0, 10) : str;
 }
 
 

@@ -670,6 +670,7 @@ function loadPendingReturns() {
         deposit_type:               row.deposit_type || "",
         deposit_amount:             row.deposit_amount || "",
         deposit_note:               row.deposit_note || "",
+        rental_days:                row.rental_days || "",
         agreement_printed:          row.agreement_printed || "No",
         customer_signature_collected: row.customer_signature_collected || "No",
         status:                     row.status,
@@ -752,7 +753,12 @@ function submitReturn(data) {
     if (!data.deposit_returned) {
       return { success: false, error: "Missing required field: deposit returned." };
     }
-    if (data.deposit_returned !== "Yes" && !data.deposit_return_note) {
+    var checkoutDepositType = String(checkoutRows[0].deposit_type || data.deposit_type || "");
+    var passportDeposit = checkoutDepositType.toLowerCase() === "passport";
+    var depositFullyReturned = passportDeposit
+      ? data.deposit_returned === "Yes"
+      : (data.deposit_returned === "Full" || data.deposit_returned === "Yes");
+    if (!depositFullyReturned && !data.deposit_return_note) {
       return { success: false, error: "Deposit return note is required if deposit was not fully returned." };
     }
   }
@@ -781,12 +787,18 @@ function submitReturn(data) {
   var lateReturn = data.late_return || "No";
 
   if (isOutdoorRental) {
+    var depositTypeForStatus = String(checkoutRows[0].deposit_type || data.deposit_type || "");
+    var isPassportDeposit = depositTypeForStatus.toLowerCase() === "passport";
+    var depositFullyReturnedForStatus = isPassportDeposit
+      ? data.deposit_returned === "Yes"
+      : (data.deposit_returned === "Full" || data.deposit_returned === "Yes");
+
     if (lateReturn === "Yes" ||
         extraDayCharge > 0 ||
         dirtyConditionCharge > 0 ||
         damageOrLossCharge > 0 ||
         finalAmountDue > 0 ||
-        data.deposit_returned !== "Yes") {
+        !depositFullyReturnedForStatus) {
       hasIssue = true;
     }
 
@@ -804,6 +816,15 @@ function submitReturn(data) {
   var dateReturned = data.date_returned || data.actual_return_date || formatDate(new Date());
   var timestamp = formatTimestamp();
   var returnRows = [];
+  var depositReturnNote = data.deposit_return_note || "";
+  if (isOutdoorRental && data.deposit_amount_returned !== undefined && data.deposit_amount_returned !== "") {
+    var amountLabel = String(checkoutRows[0].deposit_type || data.deposit_type || "").toLowerCase() === "passport"
+      ? "Charge collected"
+      : "Deposit amount returned";
+    depositReturnNote = depositReturnNote
+      ? depositReturnNote + " | " + amountLabel + ": " + data.deposit_amount_returned
+      : amountLabel + ": " + data.deposit_amount_returned;
+  }
 
   // --- Build RETURN_LOG rows ---
   for (var r = 0; r < data.rows.length; r++) {
@@ -838,7 +859,7 @@ function submitReturn(data) {
       dirty_condition_charge: isOutdoorRental ? dirtyConditionCharge : "",
       damage_or_loss_charge: isOutdoorRental ? damageOrLossCharge : "",
       deposit_returned:      isOutdoorRental ? data.deposit_returned : "",
-      deposit_return_note:   isOutdoorRental ? (data.deposit_return_note || "") : "",
+      deposit_return_note:   isOutdoorRental ? depositReturnNote : "",
       final_amount_due:      isOutdoorRental ? finalAmountDue : "",
       return_note:           item.return_note || data.return_note || ""
     });
