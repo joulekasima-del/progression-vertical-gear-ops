@@ -96,20 +96,12 @@
   setText("ag-deposit-type", info.deposit_type || "—");
 
   var amountRow = document.getElementById("ag-deposit-amount-row");
-  var noteRow = document.getElementById("ag-deposit-note-row");
 
   if (info.deposit_type === "Cash" && info.deposit_amount) {
     setText("ag-deposit-amount", "฿" + Number(info.deposit_amount).toLocaleString());
     amountRow.style.display = "";
   } else {
     amountRow.style.display = "none";
-  }
-
-  if (info.deposit_note) {
-    setText("ag-deposit-note", info.deposit_note);
-    noteRow.style.display = "";
-  } else {
-    noteRow.style.display = "none";
   }
 
   // --- Staff ---

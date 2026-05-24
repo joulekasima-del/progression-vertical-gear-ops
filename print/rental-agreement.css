@@ -67,6 +67,13 @@ body {
   color: #555;
 }
 
+.agreement-contact {
+  margin-top: 3px;
+  color: #555;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
 
 /* --- Agreement meta (ID + date) --- */
 .agreement-meta {
@@ -194,10 +201,13 @@ body {
   font-size: 0.75rem;
   color: #444;
   line-height: 1.45;
+  columns: 2;
+  column-gap: 24px;
 }
 
 .terms li {
   margin-bottom: 2px;
+  break-inside: avoid;
 }
 
 
@@ -308,8 +318,14 @@ body {
 
 /* --- Print media --- */
 @media print {
+  @page {
+    size: A4;
+    margin: 1cm 1cm 1cm 2cm;
+  }
+
   body {
     padding: 0;
+    max-width: none;
     font-size: 11px;
     line-height: 1.35;
   }
@@ -319,12 +335,13 @@ body {
   }
 
   .agreement-header {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
   }
 
   .agreement-header h1 { font-size: 1.2rem; }
   .agreement-header h2 { font-size: 0.9rem; }
+  .agreement-contact { font-size: 0.68rem; margin-top: 1px; }
 
   .agreement-meta { margin-bottom: 8px; padding: 4px 0; }
 
@@ -338,7 +355,7 @@ body {
   .item-table td { padding: 3px 6px; }
   .pricing-table td { padding: 2px 0; }
 
-  .terms ol { font-size: 0.7rem; line-height: 1.4; }
+  .terms ol { font-size: 0.68rem; line-height: 1.28; column-gap: 18px; }
   .terms li { margin-bottom: 1px; }
 
   .signatures { margin-top: 8px; }
