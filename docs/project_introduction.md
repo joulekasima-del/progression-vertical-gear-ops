@@ -326,8 +326,13 @@ Columns:
 ```text
 course_id
 course_name
+program_purpose
+activity_type
 active
 ```
+
+`program_purpose` options: FIT Course, Adventure / Private Guiding, Scouting, Instructor Training.
+`activity_type` options: Climbing, Caving, Climbing + Caving.
 
 ### COURSE_GEAR_TEMPLATE
 
@@ -343,6 +348,28 @@ gear_type_id
 gear_name
 suggested_qty
 active
+```
+
+### GEAR_REGISTER
+
+Purpose:
+Combined read-only gear register for future template and inspection planning.
+
+Columns:
+
+```text
+category
+item_type
+item_description
+brand_model
+size
+qty
+counted
+purchase_date
+location
+condition
+notes
+last_inspected
 ```
 
 ### OUTDOOR_RENTAL_MASTER
@@ -460,6 +487,8 @@ date
 guide_name
 course_id
 course_name
+program_purpose
+activity_type
 course_time
 gear_type_id
 gear_name
@@ -671,6 +700,8 @@ Fields:
 Date
 Guide / staff name
 Course name
+Program purpose
+Activity type
 Course session
 Needed gear list
 Quantity taken
@@ -681,17 +712,22 @@ Rules:
 
 - Course list comes from `COURSE_MASTER`.
 - Needed gear list comes from `COURSE_GEAR_TEMPLATE`.
-- FIT-related gear checkouts may include three activity groups:
+- Course Gear Check-Out filters first by program purpose:
   - FIT Course
+  - Adventure / Private Guiding
   - Scouting
   - Instructor Training
+- Then filters by activity type:
+  - Climbing
+  - Caving
+  - Climbing + Caving
 - FIT course names should be collected from Progression Vertical website course information and confirmed internally before entering final sheet rows.
 - Indoor caving courses should be excluded from Course Gear Check-Out because the gear is used at the gym and should only need quantity/quality inspection for now.
 - For now, add course names to `COURSE_MASTER` first and skip `COURSE_GEAR_TEMPLATE` until gear type and suggested quantity are confirmed later.
-- If the course list becomes long, consider adding an activity group filter before the course dropdown.
 - Course session is selected from a dropdown: `Full-Day`, `AM-Half-Day`, `PM-Half-Day`.
 - Do not use a clock input for course time in version 1.
 - Submitting creates rows in `CHECKOUT_LOG`.
+- Course checkouts save `program_purpose` and `activity_type` into `CHECKOUT_LOG`.
 - Status starts as `Pending Return`.
 - All rows in one checkout share the same `checkout_id`.
 

@@ -35,7 +35,10 @@ Use this checklist before marking a feature done, committing, pushing, or redepl
 ### Course List
 
 - Open Course Gear Check-Out.
-- Confirm course dropdown loads from `COURSE_MASTER`.
+- Confirm Program Purpose loads from `COURSE_MASTER`.
+- Confirm Activity Type filters after selecting a Program Purpose.
+- Confirm Course / Mission filters after selecting Program Purpose and Activity Type.
+- Confirm older course rows without metadata appear under `Other`.
 - Confirm indoor caving courses are not shown if excluded from checkout.
 
 ### Course Session
@@ -57,6 +60,7 @@ PM-Half-Day
 - Submit.
 - Confirm rows appear in `CHECKOUT_LOG`.
 - Confirm `checkout_type = Course`.
+- Confirm `program_purpose` and `activity_type` save into `CHECKOUT_LOG`.
 - Confirm status is `Pending Return`.
 
 ## Outdoor Rental Check-Out

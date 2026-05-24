@@ -29,6 +29,8 @@ var btnBackToMenu         = document.getElementById("back-to-menu");
 var guideNameInput        = document.getElementById("guide-name");
 var checkoutDateInput     = document.getElementById("checkout-date");
 var courseTimeInput       = document.getElementById("course-time");
+var programPurposeSelect  = document.getElementById("program-purpose-select");
+var activityTypeSelect    = document.getElementById("activity-type-select");
 var courseSelect          = document.getElementById("course-select");
 var courseGearContainer   = document.getElementById("course-gear-container");
 var checkoutSubmitSection = document.getElementById("checkout-submit-section");
@@ -89,7 +91,10 @@ var returnDetailItems     = document.getElementById("return-detail-items");
 // ============================================================
 
 var currentCourseGear = [];  // Gear template items for selected course
+var currentCourses = [];     // Active courses from COURSE_MASTER
 var selectedCourseName = ""; // Name of selected course
+var selectedProgramPurpose = "";
+var selectedActivityType = "";
 var currentRentalItems = []; // Rental items from OUTDOOR_RENTAL_MASTER
 var lastRentalCheckoutId = ""; // Last submitted rental checkout_id
 var pendingReturnGroups = []; // Grouped pending return tasks
@@ -248,7 +253,12 @@ detailBackToList.addEventListener("click", function() {
 // ============================================================
 
 function resetCheckoutForm() {
+  programPurposeSelect.value = "";
+  activityTypeSelect.innerHTML = '<option value="">— Choose activity —</option>';
+  activityTypeSelect.disabled = true;
   courseSelect.value = "";
+  courseSelect.innerHTML = '<option value="">— Choose course / mission —</option>';
+  courseSelect.disabled = true;
   courseGearContainer.innerHTML = "";
   checkoutSubmitSection.classList.add("hidden");
   guideNameInput.value = "";
@@ -256,6 +266,8 @@ function resetCheckoutForm() {
   courseTimeInput.value = "Full-Day";
   currentCourseGear = [];
   selectedCourseName = "";
+  selectedProgramPurpose = "";
+  selectedActivityType = "";
 }
 
 
@@ -264,12 +276,18 @@ function resetCheckoutForm() {
 // ============================================================
 
 async function loadCourses() {
-  courseSelect.innerHTML = '<option value="">Loading courses…</option>';
+  currentCourses = [];
+  programPurposeSelect.innerHTML = '<option value="">Loading courses…</option>';
+  programPurposeSelect.disabled = true;
+  activityTypeSelect.innerHTML = '<option value="">— Choose activity —</option>';
+  activityTypeSelect.disabled = true;
+  courseSelect.innerHTML = '<option value="">— Choose course / mission —</option>';
   courseSelect.disabled = true;
 
   var result = await callAPI("loadCourses", {});
 
   if (!result.success) {
+    programPurposeSelect.innerHTML = '<option value="">Error loading courses</option>';
     courseSelect.innerHTML = '<option value="">Error loading courses</option>';
     courseGearContainer.innerHTML =
       '<div class="status-message error">Error: ' + (result.error || "Unknown error") + '</div>';
@@ -277,32 +295,48 @@ async function loadCourses() {
   }
 
   if (!result.data || result.data.length === 0) {
+    programPurposeSelect.innerHTML = '<option value="">No active courses found</option>';
     courseSelect.innerHTML = '<option value="">No active courses found</option>';
     return;
   }
 
-  var html = '<option value="">— Choose a course —</option>';
-  for (var i = 0; i < result.data.length; i++) {
-    var course = result.data[i];
-    html += '<option value="' + escapeAttr(course.course_id) + '"';
-    html += ' data-name="' + escapeAttr(course.course_name) + '">';
-    html += escapeHtml(course.course_name);
-    html += '</option>';
-  }
-
-  courseSelect.innerHTML = html;
-  courseSelect.disabled = false;
+  currentCourses = result.data;
+  renderProgramPurposeOptions();
 }
 
 
 // ============================================================
-// COURSE SELECTION — loads gear template
+// COURSE FILTERS — narrows course / mission choices
 // ============================================================
+
+programPurposeSelect.addEventListener("change", function() {
+  selectedProgramPurpose = programPurposeSelect.value;
+  selectedActivityType = "";
+  selectedCourseName = "";
+  currentCourseGear = [];
+  courseGearContainer.innerHTML = "";
+  checkoutSubmitSection.classList.add("hidden");
+  renderActivityTypeOptions();
+  renderCourseOptions();
+  validateCheckout();
+});
+
+activityTypeSelect.addEventListener("change", function() {
+  selectedActivityType = activityTypeSelect.value;
+  selectedCourseName = "";
+  currentCourseGear = [];
+  courseGearContainer.innerHTML = "";
+  checkoutSubmitSection.classList.add("hidden");
+  renderCourseOptions();
+  validateCheckout();
+});
 
 courseSelect.addEventListener("change", function() {
   var courseId = courseSelect.value;
   var selectedOption = courseSelect.options[courseSelect.selectedIndex];
   selectedCourseName = selectedOption.getAttribute("data-name") || "";
+  selectedProgramPurpose = selectedOption.getAttribute("data-program-purpose") || programPurposeSelect.value || "";
+  selectedActivityType = selectedOption.getAttribute("data-activity-type") || activityTypeSelect.value || "";
 
   if (!courseId) {
     courseGearContainer.innerHTML = "";
@@ -313,6 +347,110 @@ courseSelect.addEventListener("change", function() {
 
   loadCourseGearTemplate(courseId);
 });
+
+function renderProgramPurposeOptions() {
+  var purposes = getUniqueCourseFieldValues("program_purpose", currentCourses);
+
+  var html = '<option value="">— Choose purpose —</option>';
+  for (var i = 0; i < purposes.length; i++) {
+    html += '<option value="' + escapeAttr(purposes[i]) + '">' + escapeHtml(purposes[i]) + '</option>';
+  }
+
+  programPurposeSelect.innerHTML = html;
+  programPurposeSelect.disabled = false;
+}
+
+function renderActivityTypeOptions() {
+  if (!programPurposeSelect.value) {
+    activityTypeSelect.innerHTML = '<option value="">— Choose activity —</option>';
+    activityTypeSelect.disabled = true;
+    return;
+  }
+
+  var filtered = currentCourses.filter(function(course) {
+    return getCourseProgramPurpose(course) === programPurposeSelect.value;
+  });
+  var activities = getUniqueCourseFieldValues("activity_type", filtered);
+
+  var html = '<option value="">— Choose activity —</option>';
+  for (var i = 0; i < activities.length; i++) {
+    html += '<option value="' + escapeAttr(activities[i]) + '">' + escapeHtml(activities[i]) + '</option>';
+  }
+
+  activityTypeSelect.innerHTML = html;
+  activityTypeSelect.disabled = false;
+}
+
+function renderCourseOptions() {
+  var purpose = programPurposeSelect.value;
+  var activity = activityTypeSelect.value;
+
+  if (!purpose || !activity) {
+    courseSelect.innerHTML = '<option value="">— Choose course / mission —</option>';
+    courseSelect.disabled = true;
+    return;
+  }
+
+  var filtered = currentCourses.filter(function(course) {
+    return getCourseProgramPurpose(course) === purpose && getCourseActivityType(course) === activity;
+  });
+
+  var html = '<option value="">— Choose course / mission —</option>';
+  for (var i = 0; i < filtered.length; i++) {
+    var course = filtered[i];
+    var coursePurpose = getCourseProgramPurpose(course);
+    var courseActivity = getCourseActivityType(course);
+    html += '<option value="' + escapeAttr(course.course_id) + '"';
+    html += ' data-name="' + escapeAttr(course.course_name) + '"';
+    html += ' data-program-purpose="' + escapeAttr(coursePurpose) + '"';
+    html += ' data-activity-type="' + escapeAttr(courseActivity) + '">';
+    html += escapeHtml(course.course_name);
+    html += '</option>';
+  }
+
+  courseSelect.innerHTML = html;
+  courseSelect.disabled = filtered.length === 0;
+  if (filtered.length === 0) {
+    courseSelect.innerHTML = '<option value="">No courses for this purpose/activity</option>';
+  }
+}
+
+function getUniqueCourseFieldValues(field, courses) {
+  var seen = {};
+  var values = [];
+
+  for (var i = 0; i < courses.length; i++) {
+    var value = field === "program_purpose"
+      ? getCourseProgramPurpose(courses[i])
+      : getCourseActivityType(courses[i]);
+    if (!seen[value]) {
+      seen[value] = true;
+      values.push(value);
+    }
+  }
+
+  values.sort(function(a, b) {
+    if (a === "Other") return 1;
+    if (b === "Other") return -1;
+    return a.localeCompare(b);
+  });
+  return values;
+}
+
+function getCourseProgramPurpose(course) {
+  return course && course.program_purpose ? course.program_purpose : "Other";
+}
+
+function getCourseActivityType(course) {
+  return course && course.activity_type ? course.activity_type : "Other";
+}
+
+function getCourseMetaLabel(course) {
+  var purpose = course.program_purpose || "";
+  var activity = course.activity_type || "";
+  if (purpose && activity) return purpose + " · " + activity;
+  return purpose || activity || "";
+}
 
 
 // ============================================================
@@ -402,6 +540,8 @@ function renderCourseGearList(gearItems) {
 
 function validateCheckout() {
   var guideName = guideNameInput.value.trim();
+  var programPurpose = programPurposeSelect.value;
+  var activityType = activityTypeSelect.value;
   var courseId = courseSelect.value;
 
   // Count items with taken > 0
@@ -419,9 +559,17 @@ function validateCheckout() {
     checkoutValidation.innerHTML =
       '<div class="summary-info">Enter guide/staff name to continue.</div>';
     checkoutSubmitBtn.disabled = true;
+  } else if (!programPurpose) {
+    checkoutValidation.innerHTML =
+      '<div class="summary-info">Select a program purpose to continue.</div>';
+    checkoutSubmitBtn.disabled = true;
+  } else if (!activityType) {
+    checkoutValidation.innerHTML =
+      '<div class="summary-info">Select an activity type to continue.</div>';
+    checkoutSubmitBtn.disabled = true;
   } else if (!courseId) {
     checkoutValidation.innerHTML =
-      '<div class="summary-info">Select a course to continue.</div>';
+      '<div class="summary-info">Select a course / mission to continue.</div>';
     checkoutSubmitBtn.disabled = true;
   } else if (totalTaken === 0) {
     checkoutValidation.innerHTML =
@@ -461,6 +609,8 @@ async function submitCourseCheckout() {
   var date = checkoutDateInput.value;
   var courseTime = courseTimeInput.value;
   var courseId = courseSelect.value;
+  var programPurpose = selectedProgramPurpose || programPurposeSelect.value;
+  var activityType = selectedActivityType || activityTypeSelect.value;
 
   // Build gear rows
   var rows = [];
@@ -488,6 +638,8 @@ async function submitCourseCheckout() {
     guide_name:    guideName,
     course_id:     courseId,
     course_name:   selectedCourseName,
+    program_purpose: programPurpose,
+    activity_type: activityType,
     course_time:   courseTime,
     rows:          rows
   };
@@ -1218,6 +1370,9 @@ function renderPendingReturns(groups) {
       html += '  <div class="return-task-meta">';
       html += '    <span>Guide: ' + escapeHtml(g.guide_name) + '</span>';
       html += '    <span>' + escapeHtml(g.date) + ' · ' + escapeHtml(g.course_time) + '</span>';
+      if (g.program_purpose || g.activity_type) {
+        html += '    <span>' + escapeHtml(getCourseMetaLabel(g)) + '</span>';
+      }
       html += '  </div>';
     } else {
       html += '  <div class="return-task-title">' + escapeHtml(g.customer_name) + '</div>';
@@ -1285,6 +1440,9 @@ function openReturnDetail(groupIndex) {
     hHtml += '</div>';
     hHtml += '<h2>' + escapeHtml(g.course_name) + '</h2>';
     hHtml += '<div class="detail-meta">Guide: ' + escapeHtml(g.guide_name) + ' · ' + escapeHtml(g.date) + ' · ' + escapeHtml(g.course_time) + '</div>';
+    if (g.program_purpose || g.activity_type) {
+      hHtml += '<div class="detail-meta">' + escapeHtml(getCourseMetaLabel(g)) + '</div>';
+    }
   } else {
     hHtml += '<div class="return-task-top">';
     hHtml += '  <span class="type-badge type-rental">Rental</span>';

@@ -36,12 +36,15 @@ Used by Course Gear Check-Out.
 ```text
 course_id
 course_name
+program_purpose
+activity_type
 active
 ```
 
 Notes:
 
-- FIT-related course checkout may include FIT Course, Scouting, and Instructor Training.
+- `program_purpose` options are `FIT Course`, `Adventure / Private Guiding`, `Scouting`, and `Instructor Training`.
+- `activity_type` options are `Climbing`, `Caving`, and `Climbing + Caving`.
 - Indoor caving courses are excluded from Course Gear Check-Out for now because their gear is used at the gym and handled through inspection.
 - COURSE_GEAR_TEMPLATE rows will be completed later when gear types and suggested quantities are confirmed.
 
@@ -56,6 +59,34 @@ gear_type_id
 gear_name
 suggested_qty
 active
+```
+
+### GEAR_REGISTER
+
+Combined read-only gear register for future template and inspection planning.
+
+```text
+category
+item_type
+item_description
+brand_model
+size
+qty
+counted
+purchase_date
+location
+condition
+notes
+last_inspected
+```
+
+Categories:
+
+```text
+FIT
+GYM
+RENTAL
+CAVE
 ```
 
 ### OUTDOOR_RENTAL_MASTER
@@ -144,6 +175,8 @@ date
 guide_name
 course_id
 course_name
+program_purpose
+activity_type
 course_time
 gear_type_id
 gear_name
@@ -176,6 +209,7 @@ Rules:
 
 - `checkout_type` is `Course` or `Outdoor Rental`.
 - Course `course_time` is a session label: `Full-Day`, `AM-Half-Day`, or `PM-Half-Day`.
+- Course checkouts save `program_purpose` and `activity_type` for reports and pending-return context.
 - Status starts as `Pending Return`.
 
 ### RETURN_LOG
@@ -229,6 +263,7 @@ Safe to edit directly:
 
 - Master rows in `GEAR_MASTER`
 - Master rows in `COURSE_MASTER`
+- Rows in `GEAR_REGISTER`
 - Future template rows in `COURSE_GEAR_TEMPLATE`
 - Rental item rows and prices in `OUTDOOR_RENTAL_MASTER`
 

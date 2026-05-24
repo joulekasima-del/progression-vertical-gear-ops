@@ -13,6 +13,7 @@
  *   loadCourses()                 → COURSE_MASTER
  *   loadCourseGearTemplate(id)    → COURSE_GEAR_TEMPLATE
  *   loadOutdoorRentalItems()      → OUTDOOR_RENTAL_MASTER
+ *   loadGearRegister(category)    → GEAR_REGISTER
  *
  * Future functions (will be added as features are built):
  *   submitInspection(data)        → INSPECTION_LOG + RETIRED_GEAR_LOG
@@ -85,11 +86,60 @@ function loadCourses() {
   var cleanData = activeCourses.map(function(course) {
     return {
       course_id: course.course_id,
-      course_name: course.course_name
+      course_name: course.course_name,
+      program_purpose: course.program_purpose || "",
+      activity_type: course.activity_type || ""
     };
   });
 
   return { success: true, data: cleanData };
+}
+
+
+// ============================================================
+// loadGearRegister — loads read-only rows from GEAR_REGISTER
+//
+// Called by: future template/inspection planning tools
+// Reads: GEAR_REGISTER
+//
+// Optional filter:
+//   category = FIT, CAVE, GYM, RENTAL
+// ============================================================
+
+function loadGearRegister(category) {
+  var rows = getRowsAsObjects("GEAR_REGISTER");
+  var requestedCategory = category ? String(category).toUpperCase() : "";
+
+  if (requestedCategory) {
+    rows = rows.filter(function(row) {
+      return String(getRowValue_(row, "category", "Category") || "").toUpperCase() === requestedCategory;
+    });
+  }
+
+  var cleanData = rows.map(function(row) {
+    return {
+      category:         getRowValue_(row, "category", "Category"),
+      item_type:        getRowValue_(row, "item_type", "Item Type"),
+      item_description: getRowValue_(row, "item_description", "Item Description"),
+      brand_model:      getRowValue_(row, "brand_model", "Brand / Model"),
+      size:             getRowValue_(row, "size", "Size"),
+      qty:              getRowValue_(row, "qty", "Qty"),
+      counted:          getRowValue_(row, "counted", "counted"),
+      purchase_date:    getRowValue_(row, "purchase_date", "Purchase Date"),
+      location:         getRowValue_(row, "location", "Location"),
+      condition:        getRowValue_(row, "condition", "Condition"),
+      notes:            getRowValue_(row, "notes", "Notes"),
+      last_inspected:   getRowValue_(row, "last_inspected", "Last Inspected")
+    };
+  });
+
+  return { success: true, data: cleanData };
+}
+
+function getRowValue_(row, primaryKey, fallbackKey) {
+  if (row[primaryKey] !== undefined && row[primaryKey] !== null) return row[primaryKey];
+  if (row[fallbackKey] !== undefined && row[fallbackKey] !== null) return row[fallbackKey];
+  return "";
 }
 
 
@@ -411,6 +461,8 @@ function submitCheckout(data) {
       guide_name:    data.guide_name.trim(),
       course_id:     data.course_id,
       course_name:   data.course_name || "",
+      program_purpose: data.program_purpose || "",
+      activity_type: data.activity_type || "",
       course_time:   data.course_time || "",
       gear_type_id:  row.gear_type_id,
       gear_name:     row.gear_name,
@@ -660,6 +712,8 @@ function loadPendingReturns() {
         guide_name:                 row.guide_name || "",
         course_id:                  row.course_id || "",
         course_name:                row.course_name || "",
+        program_purpose:            row.program_purpose || "",
+        activity_type:              row.activity_type || "",
         course_time:                row.course_time || "",
         customer_name:              row.customer_name || "",
         customer_email:             row.customer_email || "",

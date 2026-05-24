@@ -32,6 +32,7 @@
 // The frontend calls:
 //   fetch(URL + "?action=loadCourses")
 //   fetch(URL + "?action=loadGearByCategory&category=FIT")
+//   fetch(URL + "?action=loadGearRegister&category=FIT")
 // ============================================================
 
 function doGet(e) {
@@ -109,6 +110,9 @@ function handleRequest(action, params) {
     // --- Course Gear Check-Out ---
     case "loadCourses":
       return loadCourses();
+
+    case "loadGearRegister":
+      return loadGearRegister(params.category);
 
     case "loadCourseGearTemplate":
       return loadCourseGearTemplate(params.courseId);
