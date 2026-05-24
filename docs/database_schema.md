@@ -43,7 +43,7 @@ active
 
 Notes:
 
-- `program_purpose` options are `FIT Course`, `Adventure / Private Guiding`, `Scouting`, and `Instructor Training`.
+- `program_purpose` options are `Outdoor Course`, `Adventure / Private Guiding`, `Scouting`, and `Instructor Training`.
 - `activity_type` options are `Climbing`, `Caving`, and `Climbing + Caving`.
 - Indoor caving courses are excluded from Course Gear Check-Out for now because their gear is used at the gym and handled through inspection.
 - COURSE_GEAR_TEMPLATE rows will be completed later when gear types and suggested quantities are confirmed.

@@ -331,7 +331,7 @@ activity_type
 active
 ```
 
-`program_purpose` options: FIT Course, Adventure / Private Guiding, Scouting, Instructor Training.
+`program_purpose` options: Outdoor Course, Adventure / Private Guiding, Scouting, Instructor Training.
 `activity_type` options: Climbing, Caving, Climbing + Caving.
 
 ### COURSE_GEAR_TEMPLATE
@@ -713,7 +713,7 @@ Rules:
 - Course list comes from `COURSE_MASTER`.
 - Needed gear list comes from `COURSE_GEAR_TEMPLATE`.
 - Course Gear Check-Out filters first by program purpose:
-  - FIT Course
+  - Outdoor Course
   - Adventure / Private Guiding
   - Scouting
   - Instructor Training
@@ -1057,7 +1057,7 @@ Rules:
 8. Build Course Gear Check-Out.
 9. Build Outdoor Rental Check-Out.
 10. Build Printable Rental Agreement.
-11. Collect FIT Course, outdoor caving, Scouting, and Instructor Training course names.
+11. Collect Outdoor Course, outdoor caving, Scouting, and Instructor Training course names.
 12. Convert course names into COURSE_MASTER rows only.
 13. Later, return to COURSE_GEAR_TEMPLATE and decide whether Course Gear Check-Out needs an activity group filter.
 14. Build Pending Return dashboard.
