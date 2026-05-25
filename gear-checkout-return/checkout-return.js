@@ -114,6 +114,9 @@ var RENTAL_DAMAGE_POLICY = {
   "Quickdraw Set (15 Draws)": { label: "HotForge Quickdraw", price: 999, perDraw: true },
   "60 cm Nylon Runner": { label: "60cm Nylon Runner", price: 399 },
   "60cm Nylon Runner": { label: "60cm Nylon Runner", price: 399 },
+  "100 cm Nylon Runner": { label: "120cm Nylon Runner", price: 499 },
+  "100cm Nylon Runner": { label: "120cm Nylon Runner", price: 499 },
+  "120 cm Nylon Runner": { label: "120cm Nylon Runner", price: 499 },
   "120cm Nylon Runner": { label: "120cm Nylon Runner", price: 499 },
   "Crazy Horse Guidebook": { label: "Crazy Horse Guidebook", price: 495 }
 };
@@ -1515,7 +1518,7 @@ function renderOutdoorRentalReturnForm(g) {
   html += '<div class="return-form-grid">';
   html += '  <div class="form-group">';
   html += '    <label for="rental-planned-return-date">Planned Return Date</label>';
-  html += '    <input type="date" id="rental-planned-return-date" class="return-text-input" value="' + escapeHtml(normalizeDateValue(g.planned_return_date)) + '" readonly />';
+  html += '    <input type="date" id="rental-planned-return-date" class="return-text-input" value="' + escapeHtml(normalizeDateValue(g.planned_return_date)) + '" />';
   html += '  </div>';
   html += '  <div class="form-group">';
   html += '    <label for="rental-actual-return-date">Actual Return Date <span class="required">*</span></label>';
@@ -1665,7 +1668,7 @@ function updateLateReturnCharge() {
   if (!currentReturnGroup || currentReturnGroup.checkout_type === "Course") return;
 
   var actualDate = getFieldValue("rental-actual-return-date");
-  var plannedDate = normalizeDateValue(currentReturnGroup.planned_return_date);
+  var plannedDate = getFieldValue("rental-planned-return-date") || normalizeDateValue(currentReturnGroup.planned_return_date);
   var extraDays = getExtraReturnDays(plannedDate, actualDate);
   var dailyTotal = getOutdoorRentalDailyTotal();
   var charge = Math.max(extraDays * dailyTotal, 0);
@@ -1707,12 +1710,12 @@ function attachOutdoorRentalReturnListeners() {
   var watched = returnDetailItems.querySelectorAll("input, select, textarea");
   watched.forEach(function(el) {
     el.addEventListener("input", function() {
-      if (el.id === "rental-actual-return-date") updateLateReturnCharge();
+      if (el.id === "rental-actual-return-date" || el.id === "rental-planned-return-date") updateLateReturnCharge();
       if (isRentalDamageField(el)) updateDamageLossCharge();
       validateOutdoorRentalReturn();
     });
     el.addEventListener("change", function() {
-      if (el.id === "rental-actual-return-date") updateLateReturnCharge();
+      if (el.id === "rental-actual-return-date" || el.id === "rental-planned-return-date") updateLateReturnCharge();
       if (el.classList.contains("rental-condition")) ensureAffectedQtyForCondition(el);
       if (isRentalDamageField(el)) updateDamageLossCharge();
       validateOutdoorRentalReturn();
@@ -1938,7 +1941,7 @@ async function submitOutdoorRentalReturn() {
     actual_return_date:       getFieldValue("rental-actual-return-date"),
     actual_return_time:       getFieldValue("rental-actual-return-time"),
     return_staff_name:        getFieldValue("rental-return-staff").trim(),
-    planned_return_date:      currentReturnGroup.planned_return_date || "",
+    planned_return_date:      getFieldValue("rental-planned-return-date") || currentReturnGroup.planned_return_date || "",
     issue_detail:             savedIssueDetail,
     return_note:              returnNote,
     return_status:            returnStatus,
