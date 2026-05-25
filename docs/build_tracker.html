@@ -1250,7 +1250,7 @@ Staff can mark signature collected and the value appears in CHECKOUT_LOG.
 
 Please implement only this feature and list changed files.`,
 
-  23: `# Feature: Collect FIT program course names for course gear checkout
+  23: `# Feature: Collect Outdoor Course and mission names for course gear checkout
 
 ## Goal
 Collect the course/program names needed to build COURSE_MASTER rows for outdoor course gear checkouts.
@@ -1278,12 +1278,13 @@ This is a planning/data collection step.
 
 ## Rules
 Focus on the Course Gear Check-Out section.
-There are 3 activity groups that need FIT gear:
-1. FIT courses
-2. Scouting
-3. Instructor Training
+There are 4 program purposes that need course gear checkout:
+1. Outdoor Course
+2. Adventure / Private Guiding
+3. Scouting
+4. Instructor Training
 
-For FIT courses, collect rock climbing and caving course names from the website.
+For Outdoor Course and Adventure / Private Guiding, collect rock climbing and caving names from the website.
 Exclude indoor caving courses from Course Gear Check-Out because their gear is used at the gym and only needs quantity/quality inspection.
 Do not collect gear templates yet.
 Do not invent gear quantities.
@@ -1291,7 +1292,7 @@ Do not invent gear quantities.
 ## Steps
 1. Review website course names.
 2. Exclude indoor caving courses.
-3. Add Scouting and Instructor Training as activity names.
+3. Add Scouting and Instructor Training as mission names.
 4. Return a COURSE_MASTER planning list only.
 
 ## Edge Cases
@@ -1301,7 +1302,7 @@ Indoor caving courses should not appear in Course Gear Check-Out.
 Scouting and Instructor Training may not be on the public website.
 
 ## Success Test
-We have a clean COURSE_MASTER course/activity list ready to add to Google Sheets, with COURSE_GEAR_TEMPLATE intentionally skipped for later.
+We have a clean COURSE_MASTER course/mission list ready to add to Google Sheets, with COURSE_GEAR_TEMPLATE intentionally skipped for later.
 
 Use this prompt in a new chat:
 
@@ -1310,12 +1311,13 @@ I am building the Progression Vertical Gear Operations Database for a Google She
 I need help collecting and structuring course names for the Course Gear Check-Out section.
 
 Context:
-There are 3 activity groups that need FIT gear checkout:
-1. FIT courses
-2. Scouting
-3. Instructor Training
+There are 4 program purposes that need course gear checkout:
+1. Outdoor Course
+2. Adventure / Private Guiding
+3. Scouting
+4. Instructor Training
 
-For FIT courses, I am using these public website pages:
+For Outdoor Course and Adventure / Private Guiding, I am using these public website pages:
 - https://www.thailandclimbing.com/rock-climbing-courses
 - https://www.thailandclimbing.com/caving-courses
 
@@ -1332,13 +1334,17 @@ COURSE_MASTER
 Columns:
 - course_id
 - course_name
+- program_purpose
+- activity_type
 - active
 
 What I need from you:
 1. Identify course names from the website text/links.
-2. Separate them into sensible activity groups:
-   - FIT Rock Climbing Courses
-   - FIT Outdoor Caving Courses
+2. Separate them into sensible program purpose and activity type groups:
+   - Outdoor Course / Climbing
+   - Outdoor Course / Caving
+   - Adventure / Private Guiding / Climbing
+   - Adventure / Private Guiding / Caving
    - Scouting
    - Instructor Training
 3. Exclude indoor caving courses from the course checkout list.
@@ -1349,7 +1355,7 @@ What I need from you:
 Recommended output format:
 
 Course list:
-| course_id | course_name | activity_group | active | include_in_course_checkout | notes |
+| course_id | course_name | program_purpose | activity_type | active | include_in_course_checkout | notes |
 
 Questions for me:
 Before creating final sheet rows, ask me any questions needed to confirm:
@@ -1360,16 +1366,16 @@ Before creating final sheet rows, ask me any questions needed to confirm:
 
 Please start by extracting the course names from the links above and marking indoor caving courses as excluded.`,
 
-  24: `# Feature: Convert FIT course names into COURSE_MASTER rows
+  24: `# Feature: Convert Outdoor Course names into COURSE_MASTER rows
 
 ## Goal
-Turn the collected FIT, Scouting, and Instructor Training course names into clean COURSE_MASTER rows.
+Turn the collected Outdoor Course, Adventure / Private Guiding, Scouting, and Instructor Training names into clean COURSE_MASTER rows.
 
 ## User
 Admin/manager updating the spreadsheet.
 
 ## Inputs
-Confirmed course names and activity groups.
+Confirmed course names, program purposes, and activity types.
 
 ## Output
 Rows ready to paste into COURSE_MASTER.
@@ -1388,14 +1394,14 @@ No code files should be changed unless the app needs new display fields later.
 ## Rules
 Use stable course_id values.
 Keep course names staff-friendly, not overly long marketing titles.
-Use active = TRUE for current courses.
+Use active = Yes for current courses.
 Exclude indoor caving courses from Course Gear Check-Out.
 Do not create COURSE_GEAR_TEMPLATE rows yet.
 
 ## Steps
 1. Review collected course list.
 2. Assign course_id values.
-3. Confirm activity_group.
+3. Confirm program_purpose and activity_type.
 4. Create COURSE_MASTER rows.
 
 ## Edge Cases
@@ -1406,29 +1412,28 @@ Indoor caving course is useful for inspection but not checkout.
 ## Success Test
 Rows can be pasted into COURSE_MASTER and the Course Gear Check-Out dropdown can load the names.
 
-Please help me convert the confirmed FIT course names into sheet-ready COURSE_MASTER rows only. Skip COURSE_GEAR_TEMPLATE for now. Do not write app code unless a missing data field is discovered.`,
+Please help me convert the confirmed Outdoor Course, Adventure / Private Guiding, Scouting, and Instructor Training names into sheet-ready COURSE_MASTER rows only. Skip COURSE_GEAR_TEMPLATE for now. Do not write app code unless a missing data field is discovered.`,
 
-  25: `# Feature: Prepare future COURSE_GEAR_TEMPLATE and activity group filter
+  25: `# Future Feature: Build COURSE_GEAR_TEMPLATE rows
 
 ## Goal
-Prepare the later step where gear templates and an optional activity group filter will be added.
+Build course gear templates after gear type and suggested quantity rules are confirmed.
 
 ## User
-Staff checking out FIT gear for courses, Scouting, or Instructor Training.
+Staff checking out gear for Outdoor Course, Adventure / Private Guiding, Scouting, or Instructor Training.
 
 ## Inputs
-Course/activity list from COURSE_MASTER and future gear templates.
+Course metadata list from COURSE_MASTER and future gear templates.
 
 ## Output
-Placeholder decision and future action plan.
+COURSE_GEAR_TEMPLATE rows after gear quantity rules are confirmed.
 
 ## Data Used
 COURSE_MASTER
 Future COURSE_GEAR_TEMPLATE
-Optional future field: activity_group
 
 ## Depends On
-Step 23 and Step 24 are complete.
+Phase 7 course metadata and COURSE_MASTER rows are complete.
 Gear type/suggested quantity data will come later.
 
 ## Files
@@ -1442,21 +1447,21 @@ Possible Apps Script files:
 - Sheets.gs
 
 ## Rules
-Do not build COURSE_GEAR_TEMPLATE yet.
-Do not add an activity group filter yet unless the course list is already too confusing.
-Come back to this after gear types and suggested quantities are confirmed.
-If added, activity groups should be:
+Do not build COURSE_GEAR_TEMPLATE until gear requirements are confirmed.
+Keep the existing Program Purpose and Activity Type filters.
+Use program purposes:
 - Outdoor Course
+- Adventure / Private Guiding
 - Scouting
 - Instructor Training
 
 Course gear templates must still come from Google Sheets.
 
 ## Steps
-1. Review number of courses/activities.
-2. Mark this step as pending until gear templates are ready.
-3. Later, create COURSE_GEAR_TEMPLATE rows.
-4. Later, decide if a group filter is useful.
+1. Confirm gear type and suggested quantity rules.
+2. Create COURSE_GEAR_TEMPLATE rows.
+3. Test each Program Purpose and Activity Type path.
+4. Verify checkout still writes one checkout_id across all rows.
 
 ## Edge Cases
 Course belongs to more than one group.
@@ -1464,9 +1469,9 @@ Scouting or Instructor Training has only one template.
 Adding a filter makes the UI slower instead of faster.
 
 ## Success Test
-This step is ready to return to once gear type and suggested quantity information is available.
+COURSE_GEAR_TEMPLATE rows load correctly for selected Course / Mission values.
 
-Please create a future action checklist for adding COURSE_GEAR_TEMPLATE rows and deciding whether to add an Outdoor Course / Scouting / Instructor Training activity group filter. Do not implement code yet.`,
+Please create COURSE_GEAR_TEMPLATE rows only after gear type and suggested quantity rules are confirmed.`,
 
   26: `# Feature: Pending return dashboard
 
@@ -2095,33 +2100,27 @@ Copy the deployed URL into <span class="cmd">shared/config.js</span>.<br><br>
     ]
   },
   {
-    phase: 'Phase 7 — Outdoor Course, Scouting, and Instructor Training Templates',
+    phase: 'Phase 7 — Course Metadata Filtering And COURSE_MASTER Rows — Complete Current Scope',
     items: [
       {
         id: 23,
-        title: 'Data step: Collect FIT program course names',
-        sub: 'Gather checkout course names for rock climbing, outdoor caving, Scouting, and Instructor Training.',
+        title: 'Data step: Collect outdoor course and mission names',
+        sub: 'Gather checkout names for Outdoor Course, Adventure / Private Guiding, Scouting, and Instructor Training.',
         detail: `<strong>Purpose:</strong> collect course/activity names before changing the spreadsheet or code.<br>
-<strong>Activity groups:</strong> FIT courses, Scouting, Instructor Training.<br>
+<strong>Program purposes:</strong> Outdoor Course, Adventure / Private Guiding, Scouting, Instructor Training.<br>
+<strong>Activity types:</strong> Climbing, Caving, Climbing + Caving.<br>
 <strong>Rule:</strong> exclude indoor caving courses from Course Gear Check-Out because gym-used gear is handled by inspection only.<br>
-<strong>Output:</strong> clean source data for <span class="cmd">COURSE_MASTER</span>. Skip <span class="cmd">COURSE_GEAR_TEMPLATE</span> for now.<br><br>
-<strong>Success test:</strong> you have course names organized enough to create COURSE_MASTER rows.`
+<strong>Implementation status:</strong> complete for current scope; 24 approved rows were prepared and added to live <span class="cmd">COURSE_MASTER</span>.<br><br>
+<strong>Success test:</strong> course names are organized enough to create COURSE_MASTER rows.`
       },
       {
         id: 24,
         title: 'Data step: Create COURSE_MASTER rows',
-        sub: 'Convert the collected course names into COURSE_MASTER rows only.',
+        sub: 'Convert the collected course names into metadata-ready COURSE_MASTER rows.',
         detail: `<strong>Data used:</strong> <span class="cmd">COURSE_MASTER</span>.<br>
-<strong>Rules:</strong> keep course names staff-friendly, use stable course IDs, set active TRUE, and skip gear templates for now.<br><br>
-<strong>Success test:</strong> COURSE_MASTER rows are ready to paste into Google Sheets.`
-      },
-      {
-        id: 25,
-        title: 'Future step: Gear templates and activity filter',
-        sub: 'Come back later when gear type and suggested quantity are ready.',
-        detail: `<strong>Now:</strong> do not build <span class="cmd">COURSE_GEAR_TEMPLATE</span> yet.<br>
-<strong>Later:</strong> add gear templates and decide whether to filter by Outdoor Course, Scouting, and Instructor Training.<br><br>
-<strong>Success test:</strong> this step is ready to return to once gear requirements are confirmed.`
+<strong>Rules:</strong> keep course names staff-friendly, use stable course IDs, set active = Yes, and skip gear templates for now.<br>
+<strong>Implementation status:</strong> complete for current scope; Course Gear Check-Out now filters by Program Purpose, Activity Type, and Course / Mission. <span class="cmd">loadCourses</span> returns metadata, and old placeholder course rows are inactive.<br><br>
+<strong>Success test:</strong> Course Gear Check-Out loads the 24 active rows without sending missing metadata rows to Other.`
       }
     ]
   },
@@ -2174,7 +2173,21 @@ Copy the deployed URL into <span class="cmd">shared/config.js</span>.<br><br>
     ]
   },
   {
-    phase: 'Phase 9 — Slack Weekly Report',
+    phase: 'Phase 9 — Future Course Gear Templates',
+    items: [
+      {
+        id: 25,
+        title: 'Future step: Build COURSE_GEAR_TEMPLATE rows',
+        sub: 'Return here after gear type and suggested quantity rules are confirmed.',
+        detail: `<strong>Now:</strong> do not build <span class="cmd">COURSE_GEAR_TEMPLATE</span> until gear requirements are confirmed.<br>
+<strong>Already done:</strong> Program Purpose and Activity Type filters exist in Course Gear Check-Out, and <span class="cmd">COURSE_MASTER</span> metadata is live.<br>
+<strong>Later:</strong> add template rows for Outdoor Course, Adventure / Private Guiding, Scouting, Instructor Training, Climbing, Caving, and Climbing + Caving paths.<br><br>
+<strong>Success test:</strong> selecting a Course / Mission loads the correct suggested gear from <span class="cmd">COURSE_GEAR_TEMPLATE</span>.`
+      }
+    ]
+  },
+  {
+    phase: 'Phase 10 — Slack Weekly Report',
     items: [
       {
         id: 30,
@@ -2202,7 +2215,7 @@ Copy the deployed URL into <span class="cmd">shared/config.js</span>.<br><br>
     ]
   },
   {
-    phase: 'Phase 10 — GitHub Pages And Staff Testing',
+    phase: 'Phase 11 — GitHub Pages And Staff Testing',
     items: [
       {
         id: 33,
