@@ -1414,27 +1414,29 @@ Rows can be pasted into COURSE_MASTER and the Course Gear Check-Out dropdown can
 
 Please help me convert the confirmed Outdoor Course, Adventure / Private Guiding, Scouting, and Instructor Training names into sheet-ready COURSE_MASTER rows only. Skip COURSE_GEAR_TEMPLATE for now. Do not write app code unless a missing data field is discovered.`,
 
-  25: `# Future Feature: Build COURSE_GEAR_TEMPLATE rows
+  25: `# Feature: Outdoor Course gear templates
 
 ## Goal
-Build course gear templates after gear type and suggested quantity rules are confirmed.
+Build COURSE_GEAR_TEMPLATE rows for Outdoor Course programs first.
 
 ## User
-Staff checking out gear for Outdoor Course, Adventure / Private Guiding, Scouting, or Instructor Training.
+Hybrid instructors checking out gear for standard outdoor climbing and caving courses.
 
 ## Inputs
-Course metadata list from COURSE_MASTER and future gear templates.
+Outdoor Course rows from COURSE_MASTER.
+Confirmed climbing and caving course gear requirements.
 
 ## Output
-COURSE_GEAR_TEMPLATE rows after gear quantity rules are confirmed.
+COURSE_GEAR_TEMPLATE rows for Outdoor Course / Climbing and Outdoor Course / Caving.
 
 ## Data Used
 COURSE_MASTER
-Future COURSE_GEAR_TEMPLATE
+COURSE_GEAR_TEMPLATE
+GEAR_REGISTER as read-only reference
 
 ## Depends On
 Phase 7 course metadata and COURSE_MASTER rows are complete.
-Gear type/suggested quantity data will come later.
+Outdoor Course gear type and suggested quantity rules are confirmed.
 
 ## Files
 Possible frontend files:
@@ -1447,31 +1449,154 @@ Possible Apps Script files:
 - Sheets.gs
 
 ## Rules
-Do not build COURSE_GEAR_TEMPLATE until gear requirements are confirmed.
-Keep the existing Program Purpose and Activity Type filters.
-Use program purposes:
-- Outdoor Course
-- Adventure / Private Guiding
-- Scouting
-- Instructor Training
-
-Course gear templates must still come from Google Sheets.
+Focus only on Outdoor Course.
+Decide whether quantities are fixed per course or based on participant/instructor count.
+Decide whether course checkout needs size breakdown for shoes, harnesses, or helmets.
+Keep Course Gear Check-Out reading templates from Google Sheets.
 
 ## Steps
-1. Confirm gear type and suggested quantity rules.
-2. Create COURSE_GEAR_TEMPLATE rows.
-3. Test each Program Purpose and Activity Type path.
-4. Verify checkout still writes one checkout_id across all rows.
+1. Review Outdoor Course / Climbing courses.
+2. Review Outdoor Course / Caving courses.
+3. Confirm fixed quantity vs participant-based quantity rules.
+4. Confirm size breakdown needs.
+5. Create COURSE_GEAR_TEMPLATE rows for Outdoor Course only.
+6. Test Outdoor Course / Climbing and Outdoor Course / Caving paths.
 
 ## Edge Cases
-Course belongs to more than one group.
-Scouting or Instructor Training has only one template.
-Adding a filter makes the UI slower instead of faster.
+Same gear template may apply to multiple courses.
+Caving courses may need very different gear from climbing courses.
+Size-required course gear may need frontend changes before templates are useful.
 
 ## Success Test
-COURSE_GEAR_TEMPLATE rows load correctly for selected Course / Mission values.
+Outdoor Course selections load correct suggested gear from COURSE_GEAR_TEMPLATE.
 
-Please create COURSE_GEAR_TEMPLATE rows only after gear type and suggested quantity rules are confirmed.`,
+Please build only Outdoor Course gear templates first. Do not build Adventure / Private Guiding, Scouting, or Instructor Training templates yet.`,
+
+  36: `# Feature: Adventure / Private Guiding gear templates
+
+## Goal
+Build COURSE_GEAR_TEMPLATE rows for Adventure / Private Guiding after the Outdoor Course template pattern is proven.
+
+## User
+Hybrid instructors preparing private guiding or adventure trips.
+
+## Inputs
+Adventure / Private Guiding rows from COURSE_MASTER.
+Confirmed climbing and caving guiding gear requirements.
+
+## Output
+COURSE_GEAR_TEMPLATE rows for Adventure / Private Guiding / Climbing and Adventure / Private Guiding / Caving.
+
+## Data Used
+COURSE_MASTER
+COURSE_GEAR_TEMPLATE
+GEAR_REGISTER as read-only reference
+
+## Rules
+Private guiding may need optional or backup gear.
+Staff-adjusted quantities should remain possible at checkout.
+Do not mix this with Outdoor Course templates unless the requirements are truly identical.
+
+## Steps
+1. Review Adventure / Private Guiding / Climbing needs.
+2. Review Adventure / Private Guiding / Caving needs.
+3. Confirm optional and backup gear.
+4. Create COURSE_GEAR_TEMPLATE rows.
+5. Test both activity paths.
+
+## Success Test
+Adventure / Private Guiding selections load useful suggested gear without slowing down staff.`,
+
+  37: `# Feature: Scouting gear templates
+
+## Goal
+Build COURSE_GEAR_TEMPLATE rows for Scouting missions.
+
+## User
+Instructors preparing exploratory climbing, caving, or mixed scouting missions.
+
+## Inputs
+Scouting rows from COURSE_MASTER.
+Confirmed scouting gear requirements.
+
+## Output
+COURSE_GEAR_TEMPLATE rows for Scouting / Climbing, Scouting / Caving, and Scouting / Climbing + Caving.
+
+## Data Used
+COURSE_MASTER
+COURSE_GEAR_TEMPLATE
+GEAR_REGISTER as read-only reference
+
+## Rules
+Scouting can be flexible and may need mission-specific notes.
+Mixed Climbing + Caving should either combine climbing and caving templates or use one explicit mixed template.
+Avoid duplicating messy mixed rows until the rule is confirmed.
+
+## Steps
+1. Review Scouting / Climbing needs.
+2. Review Scouting / Caving needs.
+3. Confirm how Scouting / Climbing + Caving should be generated.
+4. Confirm whether mission notes are enough for unusual gear.
+5. Create COURSE_GEAR_TEMPLATE rows.
+
+## Success Test
+Scouting selections load correct suggested gear for single-activity and mixed missions.`,
+
+  38: `# Feature: Instructor Training gear templates
+
+## Goal
+Build COURSE_GEAR_TEMPLATE rows for Instructor Training.
+
+## User
+Instructors preparing training missions with demo, teaching, or extra practice gear.
+
+## Inputs
+Instructor Training rows from COURSE_MASTER.
+Confirmed training gear requirements.
+
+## Output
+COURSE_GEAR_TEMPLATE rows for Instructor Training / Climbing, Instructor Training / Caving, and Instructor Training / Climbing + Caving.
+
+## Data Used
+COURSE_MASTER
+COURSE_GEAR_TEMPLATE
+GEAR_REGISTER as read-only reference
+
+## Rules
+Instructor Training may need extra demo or teaching gear beyond standard course gear.
+Mixed Climbing + Caving should combine both activity needs plus training extras if required.
+Quantities may depend on trainee count.
+
+## Steps
+1. Review Instructor Training / Climbing needs.
+2. Review Instructor Training / Caving needs.
+3. Confirm mixed Climbing + Caving rules.
+4. Confirm trainee-count quantity rules.
+5. Create COURSE_GEAR_TEMPLATE rows.
+
+## Success Test
+Instructor Training selections load correct suggested gear and remain easy for hybrid instructors to adjust.`,
+
+  39: `# Future Feature: Reusable template system
+
+## Goal
+Reduce duplicate COURSE_GEAR_TEMPLATE rows if multiple courses share the same gear pattern.
+
+## User
+Admin/manager maintaining course gear templates.
+
+## Inputs
+Validated templates from Outdoor Course, Adventure / Private Guiding, Scouting, and Instructor Training.
+
+## Output
+Optional schema/API improvement such as template_group, quantity rules, optional items, backup items, or size_required.
+
+## Rules
+Do not add abstraction before the first purpose-specific templates prove what is really needed.
+Keep checkout simple for staff.
+
+## Success Test
+Common templates can be maintained once without making checkout harder to use.`,
 
   26: `# Feature: Pending return dashboard
 
@@ -2190,12 +2315,48 @@ Copy the deployed URL into <span class="cmd">shared/config.js</span>.<br><br>
     items: [
       {
         id: 25,
-        title: 'Future step: Build COURSE_GEAR_TEMPLATE rows',
-        sub: 'Return here after gear type and suggested quantity rules are confirmed.',
-        detail: `<strong>Now:</strong> do not build <span class="cmd">COURSE_GEAR_TEMPLATE</span> until gear requirements are confirmed.<br>
-<strong>Already done:</strong> Program Purpose and Activity Type filters exist in Course Gear Check-Out, and <span class="cmd">COURSE_MASTER</span> metadata is live.<br>
-<strong>Later:</strong> add template rows for Outdoor Course, Adventure / Private Guiding, Scouting, Instructor Training, Climbing, Caving, and Climbing + Caving paths.<br><br>
-<strong>Success test:</strong> selecting a Course / Mission loads the correct suggested gear from <span class="cmd">COURSE_GEAR_TEMPLATE</span>.`
+        title: 'Feature spec: Outdoor Course gear templates',
+        sub: 'Build templates for Outdoor Course / Climbing and Outdoor Course / Caving first.',
+        detail: `<strong>Focus:</strong> Outdoor Course only.<br>
+<strong>Decisions:</strong> fixed quantities vs participant-based quantities; whether course checkout needs size breakdown for shoes, harnesses, or helmets.<br>
+<strong>Data used:</strong> <span class="cmd">COURSE_MASTER</span>, <span class="cmd">COURSE_GEAR_TEMPLATE</span>, and read-only <span class="cmd">GEAR_REGISTER</span> reference.<br>
+<strong>Rule:</strong> do not build Adventure / Private Guiding, Scouting, or Instructor Training templates in this step.<br><br>
+<strong>Success test:</strong> Outdoor Course selections load correct suggested gear from <span class="cmd">COURSE_GEAR_TEMPLATE</span>.`
+      },
+      {
+        id: 36,
+        title: 'Feature spec: Adventure / Private Guiding gear templates',
+        sub: 'Build templates for private guiding and adventure trips after the Outdoor Course pattern is proven.',
+        detail: `<strong>Focus:</strong> Adventure / Private Guiding / Climbing and Adventure / Private Guiding / Caving.<br>
+<strong>Decisions:</strong> optional gear, backup gear, and staff-adjusted quantities.<br>
+<strong>Rule:</strong> do not reuse Outdoor Course templates unless the requirements are truly identical.<br><br>
+<strong>Success test:</strong> Adventure / Private Guiding selections load useful suggested gear without slowing down staff.`
+      },
+      {
+        id: 37,
+        title: 'Feature spec: Scouting gear templates',
+        sub: 'Build flexible templates for Scouting / Climbing, Caving, and Climbing + Caving.',
+        detail: `<strong>Focus:</strong> Scouting missions.<br>
+<strong>Decisions:</strong> whether mixed Climbing + Caving combines climbing and caving templates automatically or uses one explicit mixed template.<br>
+<strong>Rule:</strong> avoid duplicating messy mixed rows until the mixed activity rule is confirmed.<br><br>
+<strong>Success test:</strong> Scouting selections load correct suggested gear for single-activity and mixed missions.`
+      },
+      {
+        id: 38,
+        title: 'Feature spec: Instructor Training gear templates',
+        sub: 'Build training templates for climbing, caving, and mixed instructor training.',
+        detail: `<strong>Focus:</strong> Instructor Training / Climbing, Instructor Training / Caving, and Instructor Training / Climbing + Caving.<br>
+<strong>Decisions:</strong> demo gear, teaching gear, training extras, and trainee-count quantity rules.<br>
+<strong>Rule:</strong> mixed Climbing + Caving should combine both activity needs plus any training extras if required.<br><br>
+<strong>Success test:</strong> Instructor Training selections load correct suggested gear and remain easy for hybrid instructors to adjust.`
+      },
+      {
+        id: 39,
+        title: 'Future step: Reusable template system',
+        sub: 'Only add a reusable template system if repeated templates become hard to maintain.',
+        detail: `<strong>Possible fields:</strong> template_group, quantity rules, optional_item, backup_item, size_required, and notes.<br>
+<strong>Rule:</strong> do not add abstraction before the purpose-specific templates prove what is really needed.<br><br>
+<strong>Success test:</strong> common templates can be maintained once without making checkout harder to use.`
       }
     ]
   },
