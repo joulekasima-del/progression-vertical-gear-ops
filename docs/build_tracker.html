@@ -1550,13 +1550,13 @@ Please implement only this feature and list changed files.`,
   28: `# Feature: Submit outdoor rental return
 
 ## Goal
-Record outdoor rental return, condition, charges, deposit return, and final amount due.
+Record outdoor rental return, late charges, damage/loss charges, deposit return, and final amount due.
 
 ## User
 Staff receiving outdoor rental gear back.
 
 ## Inputs
-Returned quantities, issue detail, return staff name, actual return date/time, late return, extra day charge, dirty charge, damage/loss charge, deposit returned, deposit note, final amount due.
+Returned quantities, condition, damaged/lost quantity, issue detail, return staff name, planned return date, actual return date/time, auto-calculated extra day charge, damage/loss charge, deposit returned, deposit note, final amount due.
 
 ## Output
 Rows saved to RETURN_LOG and CHECKOUT_LOG status updated.
@@ -1566,23 +1566,32 @@ Reads CHECKOUT_LOG. Writes RETURN_LOG. Updates CHECKOUT_LOG.
 
 ## Rules
 If no issues/charges and quantities match, status = Completed.
-If missing, damaged, dirty, late, or charged, status = Completed with Issue.
-Deposit return details must be recorded.
+If missing, damaged, lost, late, charged, or deposit is not fully returned, status = Completed with Issue.
+Late return is auto-filled when actual return date is after planned return date.
+Extra charge = extra days x daily rate of rental items taken.
+Damage and loss use the same fixed policy price for each item.
+Quickdraw damage/loss is charged by number of affected draws x policy price per draw.
+Dirty condition charge is not used.
+Deposit return fields must be deposit-type-aware and easy for staff to understand.
 
 ## Steps
 1. Staff opens outdoor rental pending task.
-2. Staff enters returned quantities and charges.
-3. Staff records deposit return.
-4. API saves return rows.
-5. API updates checkout status.
+2. Staff confirms planned return date and enters actual return date/time.
+3. Staff enters returned quantities and any damaged/lost quantities.
+4. App auto-calculates late, damage/loss, and final amount due.
+5. Staff records deposit/passport return.
+6. API saves return rows.
+7. API updates checkout status.
 
 ## Edge Cases
-Late return with no extra charge.
-Deposit not returned.
+Late return with zero or missing daily rate.
+Passport not returned.
+Cash deposit partially returned.
+Missing or damaged quickdraws charged per draw.
 Final amount due is negative.
 
 ## Success Test
-Outdoor rental return saves charges and deposit details into RETURN_LOG.
+Outdoor rental return saves late charge, damage/loss charge, deposit details, final amount due, and issue details into RETURN_LOG.
 
 Please implement only this feature and list changed files.`,
 
@@ -2151,16 +2160,20 @@ Copy the deployed URL into <span class="cmd">shared/config.js</span>.<br><br>
         detail: `<strong>Outdoor rental return fields:</strong>
 <ul>
   <li>Return staff name</li>
+  <li>Planned return date</li>
   <li>Actual return date and time</li>
-  <li>Late return</li>
-  <li>Extra day charge</li>
-  <li>Dirty condition charge</li>
-  <li>Damage or loss charge</li>
-  <li>Deposit returned</li>
+  <li>Items and returned quantity</li>
+  <li>Late return auto-filled from actual return date &gt; planned return date</li>
+  <li>Daily rate of rental items taken</li>
+  <li>Extra days</li>
+  <li>Extra charge</li>
+  <li>Damage/Loss charge using fixed policy prices</li>
+  <li>Deposit/passport returned</li>
   <li>Deposit return note</li>
   <li>Final amount due</li>
 </ul>
-<strong>Success test:</strong> outdoor rental return saves charges and deposit details into RETURN_LOG.`
+<strong>Rules:</strong> dirty condition charge is not used. Damaged and Lost charge the same fixed policy amount; quickdraws are charged per affected draw.<br><br>
+<strong>Success test:</strong> outdoor rental return saves late charge, damage/loss charge, deposit details, and final amount due into RETURN_LOG.`
       },
       {
         id: 29,
