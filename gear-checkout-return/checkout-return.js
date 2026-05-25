@@ -1361,9 +1361,12 @@ function renderPendingReturns(groups) {
     var typeBadge = g.checkout_type === "Course"
       ? '<span class="type-badge type-course">Course</span>'
       : '<span class="type-badge type-rental">Rental</span>';
+    var overdueBadge = g.status === "Overdue"
+      ? '<span class="flag-badge overdue-badge">Overdue</span>'
+      : "";
 
     html += '  <div class="return-task-top">';
-    html += '    ' + typeBadge;
+    html += '    <div class="return-task-badges">' + typeBadge + overdueBadge + '</div>';
     html += '    <span class="return-task-id">' + escapeHtml(g.checkout_id) + '</span>';
     html += '  </div>';
 

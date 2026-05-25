@@ -681,6 +681,8 @@ function updateCheckoutField(data) {
 
 function loadPendingReturns() {
   var allRows = getRowsAsObjects("CHECKOUT_LOG");
+  var today = formatDate(new Date());
+  applyOverdueStatuses_(allRows, today);
 
   // Filter to open statuses
   var openRows = allRows.filter(function(row) {
@@ -697,6 +699,7 @@ function loadPendingReturns() {
   for (var i = 0; i < openRows.length; i++) {
     var row = openRows[i];
     var id = String(row.checkout_id);
+    var rowStatus = String(row.status);
 
     if (!groups[id]) {
       // Format dates for display
@@ -727,7 +730,7 @@ function loadPendingReturns() {
         rental_days:                row.rental_days || "",
         agreement_printed:          row.agreement_printed || "No",
         customer_signature_collected: row.customer_signature_collected || "No",
-        status:                     row.status,
+        status:                     rowStatus,
         items:                      [],
         item_count:                 0
       };
@@ -754,6 +757,81 @@ function loadPendingReturns() {
   });
 
   return { success: true, data: result };
+}
+
+function applyOverdueStatuses_(rows, today) {
+  var overdueIds = {};
+  var hasOverdue = false;
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (String(row.status) === "Pending Return" && isCheckoutOverdue_(row, today)) {
+      overdueIds[String(row.checkout_id)] = true;
+      hasOverdue = true;
+    }
+  }
+
+  if (!hasOverdue) return;
+
+  var sheet = getSheet("CHECKOUT_LOG");
+  var headers = getHeaders("CHECKOUT_LOG");
+  var statusCol = headers.indexOf("status") + 1;
+
+  if (statusCol === 0 || sheet.getLastRow() <= 1) return;
+
+  var statusRange = sheet.getRange(2, statusCol, sheet.getLastRow() - 1, 1);
+  var statusValues = statusRange.getValues();
+  var changed = false;
+
+  for (var r = 0; r < rows.length; r++) {
+    var currentRow = rows[r];
+    var rowOffset = currentRow._rowNumber - 2;
+
+    if (overdueIds[String(currentRow.checkout_id)] &&
+        String(currentRow.status) === "Pending Return" &&
+        rowOffset >= 0 &&
+        rowOffset < statusValues.length) {
+      statusValues[rowOffset][0] = "Overdue";
+      currentRow.status = "Overdue";
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    statusRange.setValues(statusValues);
+  }
+}
+
+function isCheckoutOverdue_(row, today) {
+  var expectedDate = getExpectedReturnDate_(row);
+  return expectedDate !== "" && expectedDate < today;
+}
+
+function getExpectedReturnDate_(row) {
+  var checkoutType = row.checkout_type || "Course";
+  var plannedReturnDate = normalizeSheetDate_(row.planned_return_date);
+
+  if (checkoutType === "Outdoor Rental") {
+    return plannedReturnDate;
+  }
+
+  return plannedReturnDate || normalizeSheetDate_(row.date);
+}
+
+function normalizeSheetDate_(value) {
+  if (!value) return "";
+  if (value instanceof Date) return formatDate(value);
+
+  var str = String(value).trim();
+  if (str === "") return "";
+
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    return str.slice(0, 10);
+  }
+
+  var parsed = new Date(str);
+  if (isNaN(parsed.getTime())) return "";
+  return formatDate(parsed);
 }
 
 
